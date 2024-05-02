@@ -1,5 +1,6 @@
-# views.py
-from flask import Flask, jsonify
+# app/views.py
+from . import app  # Importa app desde el módulo local donde app está instanciado
+from flask import jsonify
 import subprocess
 
 @app.route('/run_spider/<spider_name>')
