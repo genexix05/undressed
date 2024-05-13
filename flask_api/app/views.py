@@ -1,5 +1,4 @@
 import os
-import sys
 from flask import Flask, jsonify
 import subprocess
 
@@ -8,22 +7,18 @@ app = Flask(__name__)
 @app.route('/run_spider/<spider_name>')
 def run_spider(spider_name):
     try:
-        # Establecer el directorio correcto para Scrapy
+        # Define el directorio correcto para ejecutar Scrapy
         project_path = os.path.abspath('../../spiders/stussy_spider')  # Ajusta según tu estructura
-        os.chdir(project_path)  # Cambiar al directorio del proyecto Scrapy
+        os.chdir(project_path)  # Cambia al directorio del proyecto Scrapy
 
-        # Agregar el directorio del proyecto a sys.path
-        if project_path not in sys.path:
-            sys.path.append(project_path)
-
-        # Ejecutar el comando Scrapy
+        # Ejecuta el comando Scrapy
         command = ['scrapy', 'crawl', spider_name]
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         stdout, stderr = process.communicate()
-
+        
         if process.returncode != 0:
-            return jsonify({'status': 'error', 'message': stderr.decode()})
+            return jsonify({'status': 'error', 'message': 'Error executing spider', 'stderr': stderr})
         else:
-            return jsonify({'status': 'success', 'message': stdout.decode()})
+            return jsonify({'status': 'success', 'data': stdout, 'message': 'Spider executed successfully'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
