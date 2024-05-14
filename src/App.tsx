@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import NavBar from './components/NavBar';
 // import Home from './components/Home';
 // import Profile from './components/Profile';
@@ -9,20 +9,19 @@ const App: React.FC = () => {
     return (
         <Router>
             <div className="App">
-                <NavBar />  {/* Incluye el NavBar en la parte superior de la página */}
-                <Switch>
-                    {/* Define las rutas para cada página */}
-                    {/* <Route path="/" exact component={Home} />
-                    <Route path="/profile" component={Profile} />
-                    <Route path="/settings" component={Settings} /> */}
-                    {/* Puedes agregar más rutas según sea necesario */}
-                </Switch>
+                <NavBar />
+                <Routes>  // Reemplazo de Switch por Routes
+                    {/* <Route path="/" element={<Home />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/settings" element={<Settings />} /> */}
+                </Routes>
             </div>
         </Router>
     );
 };
 
 export default App;
+
 
 /* <ScrapyStarter />
 import ScrapyStarter from './components/scrapystarter'; */
