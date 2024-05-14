@@ -19,6 +19,8 @@ NEWSPIDER_MODULE = "stussy_spider.spiders"
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
 
+LOG_LEVEL = 'DEBUG'
+
 SPLASH_URL = 'http://localhost:8050'
 
 DOWNLOADER_MIDDLEWARES = {
@@ -78,7 +80,7 @@ HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    "stussy_spider.pipelines.StussySpiderPipeline": 300,
+    "stussy_spider.pipelines.StussyProductsPipeline": 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

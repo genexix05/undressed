@@ -1,21 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 
-const ScrapyStarter = () => {
-    const startSpider = async () => {
-        try {
-            const response = await fetch('/api/start-spider', {
-                method: 'GET'
+function SpiderButton() {
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState('');
+
+    const runSpider = () => {
+        setLoading(true);
+        axios.get('http://localhost:3001/start_spider')
+            .then(response => {
+                setMessage('Spider ejecutado con éxito');
+                setLoading(false);
+            })
+            .catch(error => {
+                setMessage('Error al ejecutar spider: ' + error.message);
+                setLoading(false);
             });
-            const data = await response.json();
-            console.log('Respuesta del servidor:', data);
-        } catch (error) {
-            console.error('Error al iniciar el spider:', error);
-        }
     };
 
     return (
-        <button onClick={startSpider}>Iniciar Spider</button>
+        <div>
+            <button onClick={runSpider} disabled={loading}>
+                {loading ? 'Ejecutando...' : 'Ejecutar Spider'}
+            </button>
+            <p>{message}</p>
+        </div>
     );
-};
+}
 
-export default ScrapyStarter;
+export default SpiderButton;
