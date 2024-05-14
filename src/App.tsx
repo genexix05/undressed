@@ -4,6 +4,16 @@ import NavBar from './components/NavBar';
 // import Home from './components/Home';
 // import Profile from './components/Profile';
 // import Settings from './components/Settings';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+
+import "preline/preline";
+import { IStaticMethods } from "preline/preline";
+declare global {
+  interface Window {
+    HSStaticMethods: IStaticMethods;
+  }
+}
 
 const App: React.FC = () => {
     return (

@@ -16,6 +16,8 @@
       "noEmit": true,
       "jsx": "react-jsx"
     },
-    "include": ["src"]
+    "include": ["src"],
+    "devDependencies": {
+      "prop-types": "^15.7.2"
   }
-  
+}
