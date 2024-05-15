@@ -6,7 +6,7 @@ import HomePage from './pages/HomePage';
 // import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
-import EmailVerifiedPage from './pages/EmailVerifiedPage';
+import EmailVerifiedPage from './pages/VerifyEmailCallbackPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const App: React.FC = () => {

@@ -37,9 +37,8 @@ const RegisterPage: React.FC = () => {
       }
       const data = await response.json();
       console.log("Registro exitoso:", data);
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
-      navigate("/home"); // Redirigir a la página de inicio
+      // No guardar tokens ni redirigir a home aún
+      navigate("/verify-email"); // Redirigir a la página de verificación de correo
     } catch (error) {
       console.error("Error al registrar:", error);
     }

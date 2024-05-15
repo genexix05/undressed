@@ -4,6 +4,8 @@ const axios = require("axios");
 const app = express();
 const cors = require("cors");
 const port = 3001;
+const mysql = require("mysql2");
+
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
@@ -42,14 +44,14 @@ const promisePool = pool.promise();
 
 const createTransporter = async () => {
   const oauth2Client = new OAuth2(
-    "1024131062580-n0d2kc6keh0grlh9oh5fifi632kj8kv2.apps.googleusercontent.com",
-    CLIENT_SECRET,
+    process.env.EMAIL_CLIENT_ID,
+    process.env.EMAIL_CLIENT_SECRET,
     "https://developers.google.com/oauthplayground"
   );
 
   oauth2Client.setCredentials({
     refresh_token:
-      "1//04KFCOKT9vZjaCgYIARAAGAQSNwF-L9IrbYDE9SmgBmp7rs6xUKhpS7BuTeiPb0uMfvFOUzL0DPK8ExoLD_gYQU3OX80MPuuOBaE",
+    process.env.EMAIL_REFRESH_TOKEN,
   });
 
   const accessToken = await new Promise((resolve, reject) => {
@@ -178,6 +180,46 @@ app.get("/verify", (req, res) => {
     }
   );
 });
+
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+      const [rows] = await promisePool.query('SELECT * FROM users WHERE email = ?', [email]);
+      if (rows.length === 0) {
+        return res.status(401).send('Credenciales incorrectas');
+      }
+  
+      const user = rows[0];
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (!validPassword) {
+        return res.status(401).send('Credenciales incorrectas');
+      }
+  
+      const accessToken = jwt.sign(
+        { userId: user.id, email: user.email },
+        ACCESS_TOKEN_SECRET,
+        { expiresIn: '1h' }
+      );
+  
+      const refreshToken = jwt.sign(
+        { userId: user.id, email: user.email },
+        REFRESH_TOKEN_SECRET,
+        { expiresIn: '7d' }
+      );
+  
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // Expira en 7 días
+      await promisePool.query(
+        'INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
+        [user.id, refreshToken, expiresAt]
+      );
+  
+      res.json({ accessToken, refreshToken });
+    } catch (error) {
+      console.error('Error en el inicio de sesión:', error);
+      res.status(500).send({ error: 'Error en el inicio de sesión: ' + error.message });
+    }
+  });
 
 app.post('/token', async (req, res) => {
     const { refreshToken } = req.body;

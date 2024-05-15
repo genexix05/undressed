@@ -1,29 +1,12 @@
-// src/pages/VerifyEmailPage.tsx
-import React, { useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import React from 'react';
 
 const VerifyEmailPage: React.FC = () => {
-  let [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = searchParams.get('token');
-    if (token) {
-      fetch(`http://localhost:3001/verify?token=${token}`)
-        .then((response) => {
-          if (response.ok) {
-            navigate('/email-verified');
-          }
-        })
-        .catch(() => {
-          alert('Error al verificar el correo.');
-        });
-    }
-  }, [searchParams, navigate]);
-
   return (
-    <div>
-      <h2>Correo enviado.Verificando correo...</h2>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="px-8 py-6 mt-4 text-left bg-white shadow-lg max-w-md w-full">
+        <h3 className="text-2xl font-bold text-center">Verifica tu Correo</h3>
+        <p className="text-center mt-4">Hemos enviado un enlace de verificación a tu correo electrónico. Por favor, revisa tu bandeja de entrada y haz clic en el enlace para verificar tu cuenta.</p>
+      </div>
     </div>
   );
 }
