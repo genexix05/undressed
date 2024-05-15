@@ -65,16 +65,12 @@ const createTransporter = async () => {
     service: "gmail",
     auth: {
       type: "OAuth2",
-      user: "noreplyundressed@gmail.com",
-      accessToken,
-      clientId:
-        "1024131062580-n0d2kc6keh0grlh9oh5fifi632kj8kv2.apps.googleusercontent.com",
-      clientSecret: "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",
-      refreshToken:
-        "1//04KFCOKT9vZjaCgYIARAAGAQSNwF-L9IrbYDE9SmgBmp7rs6xUKhpS7BuTeiPb0uMfvFOUzL0DPK8ExoLD_gYQU3OX80MPuuOBaE",
+      user: process.env.EMAIL_USER,
+      clientId: process.env.EMAIL_CLIENT_ID,
+      clientSecret: process.env.EMAIL_CLIENT_SECRET,
+      refreshToken: process.env.EMAIL_REFRESH_TOKEN,
     },
   });
-
   return transporter;
 };
 
