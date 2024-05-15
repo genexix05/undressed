@@ -37,7 +37,9 @@ const RegisterPage: React.FC = () => {
       }
       const data = await response.json();
       console.log("Registro exitoso:", data);
-      navigate("/verify");
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      navigate("/home"); // Redirigir a la página de inicio
     } catch (error) {
       console.error("Error al registrar:", error);
     }

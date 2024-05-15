@@ -86,16 +86,29 @@ app.post("/register", async (req, res) => {
       [name, surname, date, username, email, hashedPassword, verificationToken]
     );
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { userId: result.insertId, email: email },
-      SECRET_KEY,
-      { expiresIn: "24h" }
+      ACCESS_TOKEN_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    const refreshToken = jwt.sign(
+      { userId: result.insertId, email: email },
+      REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // Expira en 7 días
+    await promisePool.query(
+      'INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
+      [result.insertId, refreshToken, expiresAt]
     );
 
     const verificationLink = `http://localhost:3000/verify?token=${verificationToken}`;
     const transporter = await createTransporter();
     await transporter.sendMail({
-      from: "noreplyundressed@gmail.com",
+      from: process.env.EMAIL_USER,
       to: email,
       subject: "Verifica tu cuenta",
       html: `<p>Gracias por registrarte! Por favor verifica tu cuenta haciendo clic en el siguiente enlace: <a href="${verificationLink}">Verificar Cuenta</a></p>`,
@@ -106,7 +119,8 @@ app.post("/register", async (req, res) => {
       message:
         "Usuario registrado correctamente, se ha enviado un correo de verificación.",
       userId: result.insertId,
-      token: token,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
     });
   } catch (error) {
     console.error("Error en el proceso de registro:", error);
@@ -164,6 +178,36 @@ app.get("/verify", (req, res) => {
     }
   );
 });
+
+app.post('/token', async (req, res) => {
+    const { refreshToken } = req.body;
+    if (!refreshToken) return res.sendStatus(401);
+  
+    const [rows] = await promisePool.query(
+      'SELECT * FROM refresh_tokens WHERE token = ?',
+      [refreshToken]
+    );
+  
+    if (rows.length === 0) return res.sendStatus(403);
+  
+    const storedToken = rows[0];
+    if (new Date(storedToken.expires_at) < new Date()) {
+      await promisePool.query('DELETE FROM refresh_tokens WHERE id = ?', [storedToken.id]);
+      return res.sendStatus(403);
+    }
+  
+    jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err, user) => {
+      if (err) return res.sendStatus(403);
+  
+      const newAccessToken = jwt.sign(
+        { userId: user.userId, email: user.email },
+        ACCESS_TOKEN_SECRET,
+        { expiresIn: '1h' }
+      );
+  
+      res.json({ accessToken: newAccessToken });
+    });
+  });
 
 app.listen(port, () => {
   console.log(`Node server listening at http://localhost:${port}`);
