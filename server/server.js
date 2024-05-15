@@ -4,7 +4,8 @@ const axios = require("axios");
 const app = express();
 const cors = require("cors");
 const port = 3001;
-const SECRET_KEY = process.env.SECRET_KEY;
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
@@ -42,7 +43,7 @@ const promisePool = pool.promise();
 const createTransporter = async () => {
   const oauth2Client = new OAuth2(
     "1024131062580-n0d2kc6keh0grlh9oh5fifi632kj8kv2.apps.googleusercontent.com",
-    "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",
+    CLIENT_SECRET,
     "https://developers.google.com/oauthplayground"
   );
 
