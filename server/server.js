@@ -1,11 +1,14 @@
+require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
 const app = express();
 const cors = require("cors");
+const port = 3001;
+const SECRET_KEY = process.env.SECRET_KEY;
+
 const bodyParser = require("body-parser");
-const port = 3001; // Asegúrate de que este puerto no choque con otros servicios
-const mysql = require("mysql");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
 const { google } = require("googleapis");
@@ -13,6 +16,7 @@ const OAuth2 = google.auth.OAuth2;
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.json());
 
 app.get("/start_spider", (req, res) => {
   axios
@@ -32,6 +36,8 @@ const pool = mysql.createPool({
   password: "",
   database: "undressed",
 });
+
+const promisePool = pool.promise();
 
 const createTransporter = async () => {
   const oauth2Client = new OAuth2(
@@ -71,28 +77,23 @@ const createTransporter = async () => {
   return transporter;
 };
 
-// Uso del transportador en la ruta de registro
 app.post("/register", async (req, res) => {
   const { name, surname, date, username, email, password } = req.body;
-  const verificationToken = uuidv4(); // Generar el token de verificación
+  const verificationToken = uuidv4();
   const saltRounds = 10;
-  const hashedPassword = await bcrypt.hash(password, saltRounds);
 
   try {
-    const insertResult = await pool
-      .promise()
-      .query(
-        "INSERT INTO users (name, surname, date, username, email, password, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        [
-          name,
-          surname,
-          date,
-          username,
-          email,
-          hashedPassword,
-          verificationToken,
-        ]
-      );
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const [result] = await promisePool.query(
+      "INSERT INTO users (name, surname, date, username, email, password, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [name, surname, date, username, email, hashedPassword, verificationToken]
+    );
+
+    const token = jwt.sign(
+      { userId: result.insertId, email: email },
+      SECRET_KEY,
+      { expiresIn: "24h" }
+    );
 
     const verificationLink = `http://localhost:3000/verify?token=${verificationToken}`;
     const transporter = await createTransporter();
@@ -107,7 +108,8 @@ app.post("/register", async (req, res) => {
     res.send({
       message:
         "Usuario registrado correctamente, se ha enviado un correo de verificación.",
-      userId: insertResult[0].insertId,
+      userId: result.insertId,
+      token: token,
     });
   } catch (error) {
     console.error("Error en el proceso de registro:", error);
@@ -146,7 +148,7 @@ app.get("/verify", (req, res) => {
 
       // Actualizar el estado de verificación del usuario
       pool.query(
-        "UPDATE users SET is_verified = 1, verification_token = NULL WHERE id = ?",
+        "UPDATE users SET is_verified = 1",
         [user.id],
         (error, updateResults) => {
           if (error) {
@@ -164,4 +166,8 @@ app.get("/verify", (req, res) => {
       );
     }
   );
+});
+
+app.listen(port, () => {
+  console.log(`Node server listening at http://localhost:${port}`);
 });

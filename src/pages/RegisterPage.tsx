@@ -37,7 +37,7 @@ const RegisterPage: React.FC = () => {
       }
       const data = await response.json();
       console.log("Registro exitoso:", data);
-      navigate("/login");
+      navigate("/verify");
     } catch (error) {
       console.error("Error al registrar:", error);
     }
