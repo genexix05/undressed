@@ -1,0 +1,16 @@
+API GOOGLE GMAIL:
+
+ID de cliente
+1024131062580-n0d2kc6keh0grlh9oh5fifi632kj8kv2.apps.googleusercontent.com
+
+Secreto del cliente
+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
+---------------------------------------------
+
+GOOGLE DEVELOPERS:
+
+Authorization code:
+4/0AdLIrYdEzrTmTkdgyo_eWwf2taPMG3Tp1oL7mN_p6CtgNPtVz0GqAVA_dhJUvE9o90JkfQ
+
+Refresh token:
+1//04KFCOKT9vZjaCgYIARAAGAQSNwF-L9IrbYDE9SmgBmp7rs6xUKhpS7BuTeiPb0uMfvFOUzL0DPK8ExoLD_gYQU3OX80MPuuOBaE
