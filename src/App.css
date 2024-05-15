@@ -40,3 +40,17 @@
     transform: rotate(360deg);
   }
 }
+
+.cls-1, .cls-2 {
+  fill: #2e2e2e;
+}
+
+.cls-1 {
+  stroke: #000;
+  stroke-width: 1px;
+}
+
+.cls-2 {
+  fill-rule: evenodd;
+  filter: url(#filter);
+}
