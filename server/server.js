@@ -50,8 +50,7 @@ const createTransporter = async () => {
   );
 
   oauth2Client.setCredentials({
-    refresh_token:
-    process.env.EMAIL_REFRESH_TOKEN,
+    refresh_token: process.env.EMAIL_REFRESH_TOKEN,
   });
 
   const accessToken = await new Promise((resolve, reject) => {
@@ -103,7 +102,7 @@ app.post("/register", async (req, res) => {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // Expira en 7 días
     await promisePool.query(
-      'INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
+      "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
       [result.insertId, refreshToken, expiresAt]
     );
 
@@ -130,126 +129,139 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.get("/verify", (req, res) => {
-  const { token } = req.query; // Obtener el token de verificación de la URL
+app.get("/verify", async (req, res) => {
+  const { token } = req.query;
 
   if (!token) {
-    return res.status(400).send("Solicitud inválida. No se proporcionó token.");
+    return res
+      .status(400)
+      .json({ error: "Solicitud inválida. No se proporcionó token." });
   }
 
-  // Consulta para verificar si el token existe y obtener el usuario correspondiente
-  pool.query(
-    "SELECT * FROM users WHERE verification_token = ?",
-    [token],
-    (error, results) => {
-      if (error) {
-        return res
-          .status(500)
-          .send({ error: "Error al verificar el usuario: " + error.message });
-      }
+  try {
+    const [rows] = await promisePool.query(
+      "SELECT * FROM users WHERE verification_token = ?",
+      [token]
+    );
 
-      if (results.length === 0) {
-        return res.status(404).send({ message: "Token inválido o expirado" });
-      }
-
-      const user = results[0];
-
-      // Verificar si el usuario ya ha sido verificado
-      if (user.is_verified) {
-        return res.send("Esta cuenta ya ha sido verificada.");
-      }
-
-      // Actualizar el estado de verificación del usuario
-      pool.query(
-        "UPDATE users SET is_verified = 1",
-        [user.id],
-        (error, updateResults) => {
-          if (error) {
-            return res.status(500).send({
-              error:
-                "Error al actualizar el estado de verificación del usuario: " +
-                error.message,
-            });
-          }
-
-          res.send(
-            "La cuenta ha sido verificada con éxito. Ahora puedes iniciar sesión."
-          );
-        }
-      );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Token inválido o expirado" });
     }
-  );
+
+    const user = rows[0];
+
+    if (user.is_verified === "true") {
+      return res
+        .status(200)
+        .json({ message: "Esta cuenta ya ha sido verificada." });
+    }
+
+    await promisePool.query(
+      "UPDATE users SET is_verified = 'true', verification_token = NULL WHERE id = ?",
+      [user.id]
+    );
+
+    const accessToken = jwt.sign(
+      { userId: user.id, email: user.email },
+      ACCESS_TOKEN_SECRET,
+      { expiresIn: "1h" }
+    );
+    const refreshToken = jwt.sign(
+      { userId: user.id, email: user.email },
+      REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res
+      .status(200)
+      .json({
+        message: "La cuenta ha sido verificada con éxito.",
+        accessToken,
+        refreshToken,
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Error al verificar el usuario: " + error.message });
+  }
 });
 
-app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-    try {
-      const [rows] = await promisePool.query('SELECT * FROM users WHERE email = ?', [email]);
-      if (rows.length === 0) {
-        return res.status(401).send('Credenciales incorrectas');
-      }
-  
-      const user = rows[0];
-      const validPassword = await bcrypt.compare(password, user.password);
-      if (!validPassword) {
-        return res.status(401).send('Credenciales incorrectas');
-      }
-  
-      const accessToken = jwt.sign(
-        { userId: user.id, email: user.email },
-        ACCESS_TOKEN_SECRET,
-        { expiresIn: '1h' }
-      );
-  
-      const refreshToken = jwt.sign(
-        { userId: user.id, email: user.email },
-        REFRESH_TOKEN_SECRET,
-        { expiresIn: '7d' }
-      );
-  
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // Expira en 7 días
-      await promisePool.query(
-        'INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
-        [user.id, refreshToken, expiresAt]
-      );
-  
-      res.json({ accessToken, refreshToken });
-    } catch (error) {
-      console.error('Error en el inicio de sesión:', error);
-      res.status(500).send({ error: 'Error en el inicio de sesión: ' + error.message });
-    }
-  });
-
-app.post('/token', async (req, res) => {
-    const { refreshToken } = req.body;
-    if (!refreshToken) return res.sendStatus(401);
-  
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  try {
     const [rows] = await promisePool.query(
-      'SELECT * FROM refresh_tokens WHERE token = ?',
-      [refreshToken]
+      "SELECT * FROM users WHERE email = ?",
+      [email]
     );
-  
-    if (rows.length === 0) return res.sendStatus(403);
-  
-    const storedToken = rows[0];
-    if (new Date(storedToken.expires_at) < new Date()) {
-      await promisePool.query('DELETE FROM refresh_tokens WHERE id = ?', [storedToken.id]);
-      return res.sendStatus(403);
+    if (rows.length === 0) {
+      return res.status(401).send("Credenciales incorrectas");
     }
-  
-    jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err, user) => {
-      if (err) return res.sendStatus(403);
-  
-      const newAccessToken = jwt.sign(
-        { userId: user.userId, email: user.email },
-        ACCESS_TOKEN_SECRET,
-        { expiresIn: '1h' }
-      );
-  
-      res.json({ accessToken: newAccessToken });
-    });
+
+    const user = rows[0];
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(401).send("Credenciales incorrectas");
+    }
+
+    const accessToken = jwt.sign(
+      { userId: user.id, email: user.email },
+      ACCESS_TOKEN_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    const refreshToken = jwt.sign(
+      { userId: user.id, email: user.email },
+      REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // Expira en 7 días
+    await promisePool.query(
+      "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+      [user.id, refreshToken, expiresAt]
+    );
+
+    res.json({ accessToken, refreshToken });
+  } catch (error) {
+    console.error("Error en el inicio de sesión:", error);
+    res
+      .status(500)
+      .send({ error: "Error en el inicio de sesión: " + error.message });
+  }
+});
+
+app.post("/token", async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) return res.sendStatus(401);
+
+  const [rows] = await promisePool.query(
+    "SELECT * FROM refresh_tokens WHERE token = ?",
+    [refreshToken]
+  );
+
+  if (rows.length === 0) return res.sendStatus(403);
+
+  const storedToken = rows[0];
+  if (new Date(storedToken.expires_at) < new Date()) {
+    await promisePool.query("DELETE FROM refresh_tokens WHERE id = ?", [
+      storedToken.id,
+    ]);
+    return res.sendStatus(403);
+  }
+
+  jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+
+    const newAccessToken = jwt.sign(
+      { userId: user.userId, email: user.email },
+      ACCESS_TOKEN_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.json({ accessToken: newAccessToken });
   });
+});
 
 app.listen(port, () => {
   console.log(`Node server listening at http://localhost:${port}`);

@@ -15,13 +15,13 @@ const App: React.FC = () => {
   return (
     <>
       {/* Renderiza el Header solo si no estamos en la página de registro, login o verifiaciones */}
-      {location.pathname !== '/register' && location.pathname !== '/verify' && location.pathname !== '/email-verified' && <Header />}
+      {location.pathname !== '/register' && location.pathname !== '/verify-email' && location.pathname !== '/verify'  && <Header />}
       <Routes>
         {/* <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} /> */}
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/verify" element={<VerifyEmailPage />} />
-        <Route path="/email-verified" element={<EmailVerifiedPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/verify" element={<EmailVerifiedPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/home" element={<HomePage />} />
         </Route>

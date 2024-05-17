@@ -3,34 +3,49 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { setAccessToken, setRefreshToken } from '../utils/auth';
 
 const VerifyEmailCallbackPage: React.FC = () => {
-  let [searchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = searchParams.get('token');
     if (token) {
       fetch(`http://localhost:3001/verify?token=${token}`)
-        .then(response => response.json())
+        .then(async response => {
+          const responseData = await response.json();
+          if (!response.ok) {
+            throw new Error(responseData.error || 'No se pudo verificar el correo. Intenta nuevamente.');
+          }
+          return responseData;
+        })
         .then(data => {
           if (data.accessToken && data.refreshToken) {
             setAccessToken(data.accessToken);
             setRefreshToken(data.refreshToken);
             navigate('/home'); // Redirigir a la página de inicio
+          } else if (data.message === "Esta cuenta ya ha sido verificada.") {
+            alert(data.message);
+            navigate('/login'); // Redirigir a la página de inicio de sesión
           } else {
             alert('No se pudo verificar el correo. Intenta nuevamente.');
           }
         })
-        .catch(() => {
-          alert('Error al verificar el correo.');
+        .catch(error => {
+          alert(error.message);
         });
+    } else {
+      alert('No se proporcionó token.');
     }
   }, [searchParams, navigate]);
 
   return (
-    <div>
-      <h2>Verificando correo...</h2>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="max-w-md w-full bg-white p-8 shadow-lg rounded-lg">
+        <h1 className="text-2xl font-semibold text-gray-800">
+          Verificando correo...
+        </h1>
+      </div>
     </div>
   );
-}
+};
 
 export default VerifyEmailCallbackPage;
