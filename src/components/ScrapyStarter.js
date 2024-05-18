@@ -7,7 +7,7 @@ function SpiderButton() {
 
     const runSpider = () => {
         setLoading(true);
-        axios.get('http://localhost:3001/start_spider')
+        axios.get('http://localhost:3002/start_spider')
             .then(response => {
                 setMessage('Spider ejecutado con éxito');
                 setLoading(false);

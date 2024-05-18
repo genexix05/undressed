@@ -3,7 +3,7 @@ const express = require("express");
 const axios = require("axios");
 const app = express();
 const cors = require("cors");
-const port = 3001;
+const port = 3002;
 const mysql = require("mysql2");
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
@@ -151,9 +151,21 @@ app.get("/verify", async (req, res) => {
     const user = rows[0];
 
     if (user.is_verified === "true") {
-      return res
-        .status(200)
-        .json({ message: "Esta cuenta ya ha sido verificada." });
+      const accessToken = jwt.sign(
+        { userId: user.id, email: user.email },
+        ACCESS_TOKEN_SECRET,
+        { expiresIn: "1h" }
+      );
+      const refreshToken = jwt.sign(
+        { userId: user.id, email: user.email },
+        REFRESH_TOKEN_SECRET,
+        { expiresIn: "7d" }
+      );
+      return res.json({
+        message: "Esta cuenta ya ha sido verificada.",
+        accessToken,
+        refreshToken,
+      });
     }
 
     await promisePool.query(
@@ -172,18 +184,20 @@ app.get("/verify", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res
-      .status(200)
-      .json({
-        message: "La cuenta ha sido verificada con éxito.",
-        accessToken,
-        refreshToken,
-      });
+    res.json({
+      message: "La cuenta ha sido verificada con éxito.",
+      accessToken,
+      refreshToken,
+    });
   } catch (error) {
     res
       .status(500)
       .json({ error: "Error al verificar el usuario: " + error.message });
   }
+});
+
+app.listen(port, () => {
+  console.log(`Node server listening at http://localhost:${port}`);
 });
 
 app.post("/login", async (req, res) => {

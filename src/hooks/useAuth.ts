@@ -11,7 +11,7 @@ const useAuth = () => {
       const storedRefreshToken = getRefreshToken();
       if (!storedRefreshToken) throw new Error('No refresh token available');
       
-      const response = await fetch('http://localhost:3001/token', {
+      const response = await fetch('http://localhost:3002/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
