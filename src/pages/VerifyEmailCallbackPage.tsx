@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { setAccessToken, setRefreshToken } from '../utils/auth';
+import { useAuth } from '../context/AuthContext';
 
 const VerifyEmailCallbackPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -21,8 +22,7 @@ const VerifyEmailCallbackPage: React.FC = () => {
           const accessToken = url.searchParams.get('accessToken');
           const refreshToken = url.searchParams.get('refreshToken');
           if (accessToken && refreshToken) {
-            setAccessToken(accessToken);
-            setRefreshToken(refreshToken);
+            login(accessToken, refreshToken);
             navigate('/home');
           } else {
             alert('No se pudo verificar el correo. Intenta nuevamente.');
@@ -34,7 +34,7 @@ const VerifyEmailCallbackPage: React.FC = () => {
     } else {
       alert('No se proporcionó token.');
     }
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, login]);
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">

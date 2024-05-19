@@ -4,6 +4,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import HomePage from './pages/HomePage';
 // import LoginPage from './pages/LoginPage';
+import { AuthProvider } from './context/AuthContext';
 import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import EmailVerifiedPage from './pages/VerifyEmailCallbackPage';
@@ -13,7 +14,7 @@ const App: React.FC = () => {
   const location = useLocation(); // Hook para obtener la ubicación actual
 
   return (
-    <>
+    <AuthProvider>
       {/* Renderiza el Header solo si no estamos en la página de registro, login o verifiaciones */}
       {location.pathname !== '/register' && location.pathname !== '/verify-email' && location.pathname !== '/verify'  && <Header />}
       <Routes>
@@ -27,7 +28,7 @@ const App: React.FC = () => {
         </Route>
         {/* Añade más rutas según sea necesario */}
       </Routes>
-    </>
+    </AuthProvider>
   );
 };
 
