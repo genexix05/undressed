@@ -3,7 +3,7 @@ const express = require("express");
 const axios = require("axios");
 const app = express();
 const cors = require("cors");
-const port = 3002;
+const port = 3001;
 const mysql = require("mysql2");
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;

@@ -9,7 +9,7 @@ const VerifyEmailCallbackPage: React.FC = () => {
   useEffect(() => {
     const token = searchParams.get("token");
     if (token) {
-      fetch(`http://localhost:3002/verify?token=${token}`)
+      fetch(`http://localhost:3001/verify?token=${token}`)
         .then(async (response) => {
           if (!response.ok) {
             // Si la respuesta no es OK, intenta obtener el mensaje de error
