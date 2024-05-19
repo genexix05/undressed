@@ -138,12 +138,17 @@ app.get("/verify", async (req, res) => {
 
   try {
     const [rows] = await promisePool.query("SELECT * FROM users WHERE verification_token = ?", [token]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Token inválido o expirado" });
+    }
+
     const user = rows[0];
 
     if (user.is_verified === 'true') {
       const accessToken = jwt.sign({ userId: user.id, email: user.email }, ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
       const refreshToken = jwt.sign({ userId: user.id, email: user.email }, REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
-      return res.json({ message: "Esta cuenta ya ha sido verificada.", accessToken, refreshToken });
+      return res.redirect(`http://localhost:3000/home?accessToken=${accessToken}&refreshToken=${refreshToken}`);
     }
 
     await promisePool.query("UPDATE users SET is_verified = 'true', verification_token = NULL WHERE id = ?", [user.id]);
@@ -151,11 +156,13 @@ app.get("/verify", async (req, res) => {
     const accessToken = jwt.sign({ userId: user.id, email: user.email }, ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
     const refreshToken = jwt.sign({ userId: user.id, email: user.email }, REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
 
-    res.json({ message: "La cuenta ha sido verificada con éxito.", accessToken, refreshToken });
+    res.redirect(`http://localhost:3000/home?accessToken=${accessToken}&refreshToken=${refreshToken}`);
   } catch (error) {
     res.status(500).json({ error: "Error al verificar el usuario: " + error.message });
   }
 });
+
+
 
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;

@@ -1,7 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from '../context/AuthContext';
+import { FaUserCircle } from 'react-icons/fa'; // Icono de cuenta
 
 const Header: React.FC = () => {
+  const { isAuthenticated } = useAuth(); // Obtener el usuario actual del contexto de autenticación
+
   return (
     <>
       {/* ========== HEADER ========== */}
@@ -76,18 +80,30 @@ const Header: React.FC = () => {
           </div>
           {/* Button Group */}
           <div className="flex items-center gap-x-2 ms-auto py-1 md:ps-6 md:order-3 md:col-span-3">
-            <Link
-              to="/login"  // Ajusta el path según tus rutas
-              className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-xl border border-gray-200 text-black hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-            >
-              Iniciar sesión
-            </Link>
-            <Link
-              to="/register"  // Ajusta el path según tus rutas
-              className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-xl border border-transparent bg-lime-400 text-black hover:bg-lime-500 transition focus:outline-none focus:bg-lime-500"
-            >
-              Registrarse
-            </Link>
+            {!isAuthenticated ? (
+              <>
+                <Link
+                  to="/login" // Ajusta el path según tus rutas
+                  className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-xl border border-gray-200 text-black hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+                >
+                  Iniciar sesión
+                </Link>
+                <Link
+                  to="/register" // Ajusta el path según tus rutas
+                  className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-xl border border-transparent bg-lime-400 text-black hover:bg-lime-500 transition focus:outline-none focus:bg-lime-500"
+                >
+                  Registrarse
+                </Link>
+              </>
+            ) : (
+              <Link
+                to="/account" // Ajusta el path según tus rutas
+                className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-xl border border-transparent bg-lime-400 text-black hover:bg-lime-500 transition focus:outline-none focus:bg-lime-500"
+              >
+                <FaUserCircle className="text-xl" /> {/* Icono de cuenta */}
+                Mi cuenta
+              </Link>
+            )}
             <div className="md:hidden">
               {/* Botón de menú móvil aquí */}
             </div>
