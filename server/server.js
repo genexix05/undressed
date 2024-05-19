@@ -106,7 +106,7 @@ app.post("/register", async (req, res) => {
       [result.insertId, refreshToken, expiresAt]
     );
 
-    const verificationLink = `http://localhost:3000/verify?token=${verificationToken}`;
+    const verificationLink = `http://localhost:3001/verify?token=${verificationToken}`;
     const transporter = await createTransporter();
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -133,71 +133,28 @@ app.get("/verify", async (req, res) => {
   const { token } = req.query;
 
   if (!token) {
-    return res
-      .status(400)
-      .json({ error: "Solicitud inválida. No se proporcionó token." });
+    return res.status(400).json({ error: "Solicitud inválida. No se proporcionó token." });
   }
 
   try {
-    const [rows] = await promisePool.query(
-      "SELECT * FROM users WHERE verification_token = ?",
-      [token]
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "Token inválido o expirado" });
-    }
-
+    const [rows] = await promisePool.query("SELECT * FROM users WHERE verification_token = ?", [token]);
     const user = rows[0];
 
-    if (user.is_verified === "true") {
-      const accessToken = jwt.sign(
-        { userId: user.id, email: user.email },
-        ACCESS_TOKEN_SECRET,
-        { expiresIn: "1h" }
-      );
-      const refreshToken = jwt.sign(
-        { userId: user.id, email: user.email },
-        REFRESH_TOKEN_SECRET,
-        { expiresIn: "7d" }
-      );
-      return res.json({
-        message: "Esta cuenta ya ha sido verificada.",
-        accessToken,
-        refreshToken,
-      });
+    if (user.is_verified === 'true') {
+      const accessToken = jwt.sign({ userId: user.id, email: user.email }, ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      const refreshToken = jwt.sign({ userId: user.id, email: user.email }, REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
+      return res.json({ message: "Esta cuenta ya ha sido verificada.", accessToken, refreshToken });
     }
 
-    await promisePool.query(
-      "UPDATE users SET is_verified = 'true', verification_token = NULL WHERE id = ?",
-      [user.id]
-    );
+    await promisePool.query("UPDATE users SET is_verified = 'true', verification_token = NULL WHERE id = ?", [user.id]);
 
-    const accessToken = jwt.sign(
-      { userId: user.id, email: user.email },
-      ACCESS_TOKEN_SECRET,
-      { expiresIn: "1h" }
-    );
-    const refreshToken = jwt.sign(
-      { userId: user.id, email: user.email },
-      REFRESH_TOKEN_SECRET,
-      { expiresIn: "7d" }
-    );
+    const accessToken = jwt.sign({ userId: user.id, email: user.email }, ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+    const refreshToken = jwt.sign({ userId: user.id, email: user.email }, REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
 
-    res.json({
-      message: "La cuenta ha sido verificada con éxito.",
-      accessToken,
-      refreshToken,
-    });
+    res.json({ message: "La cuenta ha sido verificada con éxito.", accessToken, refreshToken });
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error al verificar el usuario: " + error.message });
+    res.status(500).json({ error: "Error al verificar el usuario: " + error.message });
   }
-});
-
-app.listen(port, () => {
-  console.log(`Node server listening at http://localhost:${port}`);
 });
 
 app.post("/login", async (req, res) => {
