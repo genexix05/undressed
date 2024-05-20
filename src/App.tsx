@@ -11,6 +11,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import EmailVerifiedPage from './pages/VerifyEmailCallbackPage';
 import DeleteAccount from './components/DeleteAccount';
 import ProtectedRoute from './components/ProtectedRoute';
+import RegisterBrandPage from './pages/RegisterBrandPage';
 
 const App: React.FC = () => {
   const location = useLocation(); // Hook para obtener la ubicación actual
@@ -23,6 +24,7 @@ const App: React.FC = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/business/register" element={<RegisterBrandPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/verify" element={<EmailVerifiedPage />} />
         <Route path="/home" element={<ProtectedRoute />} />

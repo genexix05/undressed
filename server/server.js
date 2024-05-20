@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const subdomain = require("express-subdomain");
 const axios = require("axios");
 const app = express();
 const cors = require("cors");
@@ -78,16 +79,18 @@ const createTransporter = async () => {
   return transporter;
 };
 
+// Registro Usuarios
+
 app.post("/register", async (req, res) => {
-  const { name, surname, date, username, email, password } = req.body;
+  const { name, surname, date, username, email, password, role } = req.body; // Añade el rol
   const verificationToken = uuidv4();
   const saltRounds = 10;
 
   try {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     const [result] = await promisePool.query(
-      "INSERT INTO users (name, surname, date, username, email, password, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [name, surname, date, username, email, hashedPassword, verificationToken]
+      "INSERT INTO users (name, surname, date, username, email, password, role, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [name, surname, date, username, email, hashedPassword, role, verificationToken]
     );
 
     const accessToken = jwt.sign(
@@ -103,7 +106,7 @@ app.post("/register", async (req, res) => {
     );
 
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // Expira en 7 días
+    expiresAt.setDate(expiresAt.getDate() + 7);
     await promisePool.query(
       "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
       [result.insertId, refreshToken, expiresAt]
@@ -131,6 +134,67 @@ app.post("/register", async (req, res) => {
     res.status(500).send({ error: "Error en el registro: " + error.message });
   }
 });
+
+// Registro de Marcas
+
+const businessRouter = express.Router();
+
+businessRouter.post("/register", async (req, res) => {
+  const { name, surname, date, username, email, password } = req.body;
+  const verificationToken = uuidv4();
+  const saltRounds = 10;
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const [result] = await promisePool.query(
+      "INSERT INTO users (name, surname, date, username, email, password, role, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [name, surname, date, username, email, hashedPassword, "brand", verificationToken]
+    );
+
+    const accessToken = jwt.sign(
+      { userId: result.insertId, email: email },
+      ACCESS_TOKEN_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    const refreshToken = jwt.sign(
+      { userId: result.insertId, email: email },
+      REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+    await promisePool.query(
+      "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+      [result.insertId, refreshToken, expiresAt]
+    );
+
+    const verificationLink = `http://localhost:3001/verify?token=${verificationToken}`;
+    const transporter = await createTransporter();
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Verifica tu cuenta",
+      html: `<p>Gracias por registrarte! Por favor verifica tu cuenta haciendo clic en el siguiente enlace: <a href="${verificationLink}">Verificar Cuenta</a></p>`,
+    });
+
+    console.log("Correo de verificación enviado.");
+    res.send({
+      message: "Marca registrada correctamente, se ha enviado un correo de verificación.",
+      userId: result.insertId,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    });
+  } catch (error) {
+    console.error("Error en el proceso de registro:", error);
+    res.status(500).send({ error: "Error en el registro: " + error.message });
+  }
+});
+
+app.use(subdomain('business', businessRouter));
+
+// Verificación de Usuarios por correo
 
 app.get("/verify", async (req, res) => {
   const { token } = req.query;
