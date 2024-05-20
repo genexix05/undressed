@@ -8,6 +8,8 @@ import React, {
 import {
   getAccessToken,
   setAccessToken,
+  getRefreshToken,
+  setRefreshToken,
   removeTokens,
   logout as logoutUtil,
 } from "../utils/auth";
@@ -36,6 +38,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = (accessToken: string, refreshToken: string) => {
     setAccessToken(accessToken);
+    setRefreshToken(refreshToken); // Almacena el refresh token
     setIsAuthenticated(true);
   };
 

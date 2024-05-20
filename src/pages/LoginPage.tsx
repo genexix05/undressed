@@ -24,7 +24,7 @@ const LoginPage: React.FC = () => {
       }
 
       const data = await response.json();
-      login(data.accessToken, data.refreshToken);
+      login(data.accessToken, data.refreshToken); // Almacena tanto el accessToken como el refreshToken
       navigate('/home');
     } catch (error) {
       alert((error as Error).message);

@@ -5,7 +5,11 @@ module.exports = {
     './node_modules/preline/preline.js',
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        custom: ["Akira", "sans-serif"],
+      },
+    },
   },
   plugins: [
     require("preline/plugin"),
