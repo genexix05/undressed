@@ -7,9 +7,6 @@ const cors = require("cors");
 const port = 3001;
 const mysql = require("mysql2");
 
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
-
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -18,9 +15,18 @@ const { v4: uuidv4 } = require("uuid");
 const { google } = require("googleapis");
 const OAuth2 = google.auth.OAuth2;
 
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+
 const authenticateToken = require("../src/middleware/authMiddleware");
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://business.localhost:3000"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(bodyParser.json());
 app.use(express.json());
 
@@ -82,7 +88,7 @@ const createTransporter = async () => {
 // Registro Usuarios
 
 app.post("/register", async (req, res) => {
-  const { name, surname, date, username, email, password, role } = req.body; // Añade el rol
+  const { name, surname, date, username, email, password, role } = req.body;
   const verificationToken = uuidv4();
   const saltRounds = 10;
 
@@ -90,17 +96,26 @@ app.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     const [result] = await promisePool.query(
       "INSERT INTO users (name, surname, date, username, email, password, role, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [name, surname, date, username, email, hashedPassword, role, verificationToken]
+      [
+        name,
+        surname,
+        date,
+        username,
+        email,
+        hashedPassword,
+        role,
+        verificationToken,
+      ]
     );
 
     const accessToken = jwt.sign(
-      { userId: result.insertId, email: email },
+      { userId: result.insertId, email: email, role: role },
       ACCESS_TOKEN_SECRET,
       { expiresIn: "1h" }
     );
 
     const refreshToken = jwt.sign(
-      { userId: result.insertId, email: email },
+      { userId: result.insertId, email: email, role: role },
       REFRESH_TOKEN_SECRET,
       { expiresIn: "7d" }
     );
@@ -148,17 +163,26 @@ businessRouter.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     const [result] = await promisePool.query(
       "INSERT INTO users (name, surname, date, username, email, password, role, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [name, surname, date, username, email, hashedPassword, "brand", verificationToken]
+      [
+        name,
+        surname,
+        date,
+        username,
+        email,
+        hashedPassword,
+        "brand",
+        verificationToken,
+      ]
     );
 
     const accessToken = jwt.sign(
-      { userId: result.insertId, email: email },
+      { userId: result.insertId, email: email, role: "brand" },
       ACCESS_TOKEN_SECRET,
       { expiresIn: "1h" }
     );
 
     const refreshToken = jwt.sign(
-      { userId: result.insertId, email: email },
+      { userId: result.insertId, email: email, role: "brand" },
       REFRESH_TOKEN_SECRET,
       { expiresIn: "7d" }
     );
@@ -181,7 +205,8 @@ businessRouter.post("/register", async (req, res) => {
 
     console.log("Correo de verificación enviado.");
     res.send({
-      message: "Marca registrada correctamente, se ha enviado un correo de verificación.",
+      message:
+        "Marca registrada correctamente, se ha enviado un correo de verificación.",
       userId: result.insertId,
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -192,7 +217,7 @@ businessRouter.post("/register", async (req, res) => {
   }
 });
 
-app.use(subdomain('business', businessRouter));
+app.use(subdomain("business", businessRouter));
 
 // Verificación de Usuarios por correo
 
@@ -361,29 +386,41 @@ app.post("/logout", authenticateToken, async (req, res) => {
   if (!refreshToken) return res.sendStatus(401);
 
   try {
-    const [result] = await promisePool.query("DELETE FROM refresh_tokens WHERE token = ?", [refreshToken]);
+    const [result] = await promisePool.query(
+      "DELETE FROM refresh_tokens WHERE token = ?",
+      [refreshToken]
+    );
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Token de actualización no encontrado." });
+      return res
+        .status(404)
+        .json({ error: "Token de actualización no encontrado." });
     }
     res.sendStatus(204);
   } catch (error) {
-    res.status(500).json({ error: "Error al cerrar la sesión: " + error.message });
+    res
+      .status(500)
+      .json({ error: "Error al cerrar la sesión: " + error.message });
   }
 });
 
-app.get('/me', authenticateToken, async (req, res) => {
+app.get("/me", authenticateToken, async (req, res) => {
   try {
-    const [rows] = await promisePool.query("SELECT name, surname, date, username, email FROM users WHERE id = ?", [req.user.userId]);
+    const [rows] = await promisePool.query(
+      "SELECT name, surname, date, username, email FROM users WHERE id = ?",
+      [req.user.userId]
+    );
     if (rows.length === 0) {
       return res.status(404).json({ error: "Usuario no encontrado." });
     }
     res.json(rows[0]);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener los datos del usuario: " + error.message });
+    res.status(500).json({
+      error: "Error al obtener los datos del usuario: " + error.message,
+    });
   }
 });
 
-app.post('/update', authenticateToken, async (req, res) => {
+app.post("/update", authenticateToken, async (req, res) => {
   const { name, surname, date, username, email } = req.body;
   try {
     const [result] = await promisePool.query(
@@ -395,7 +432,9 @@ app.post('/update', authenticateToken, async (req, res) => {
     }
     res.json({ message: "Información actualizada correctamente." });
   } catch (error) {
-    res.status(500).json({ error: "Error al actualizar los datos del usuario: " + error.message });
+    res.status(500).json({
+      error: "Error al actualizar los datos del usuario: " + error.message,
+    });
   }
 });
 

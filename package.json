@@ -20,6 +20,7 @@
     "express-subdomain": "^1.0.6",
     "googleapis": "^137.1.0",
     "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
     "mysql2": "^3.9.7",
     "nodemailer": "^6.9.13",
     "preline": "^2.1.0",

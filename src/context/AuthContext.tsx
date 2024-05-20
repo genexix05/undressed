@@ -9,13 +9,13 @@ import {
   getAccessToken,
   setAccessToken,
   getRefreshToken,
-  setRefreshToken,
   removeTokens,
-  logout as logoutUtil,
+  decodeToken,
 } from "../utils/auth";
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  userRole: string | null;
   login: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
 }
@@ -28,28 +28,42 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     const token = getAccessToken();
     if (token) {
       setIsAuthenticated(true);
+      const decodedToken = decodeToken(token);
+      if (decodedToken) {
+        setUserRole(decodedToken.role);
+      } else {
+        setIsAuthenticated(false);
+        setUserRole(null);
+      }
     }
   }, []);
 
   const login = (accessToken: string, refreshToken: string) => {
     setAccessToken(accessToken);
-    setRefreshToken(refreshToken); // Almacena el refresh token
-    setIsAuthenticated(true);
+    const decodedToken = decodeToken(accessToken);
+    if (decodedToken) {
+      setUserRole(decodedToken.role);
+      setIsAuthenticated(true);
+    } else {
+      setUserRole(null);
+      setIsAuthenticated(false);
+    }
   };
 
   const logout = () => {
     removeTokens();
     setIsAuthenticated(false);
-    logoutUtil();
+    setUserRole(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, userRole, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

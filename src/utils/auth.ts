@@ -1,3 +1,5 @@
+import { jwtDecode } from "jwt-decode";
+
 export const getAccessToken = (): string | null => {
   return localStorage.getItem("accessToken");
 };
@@ -26,6 +28,22 @@ export const isAuthenticated = (): boolean => {
 export const logout = () => {
   removeTokens();
   window.location.href = '/login';
+};
+
+interface DecodedToken {
+  userId: number;
+  email: string;
+  role: string;
+  exp: number;
+}
+
+export const decodeToken = (token: string): DecodedToken | null => {
+  try {
+    return jwtDecode<DecodedToken>(token);
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return null;
+  }
 };
 
 export const authHeader = (): { Authorization: string } | {} => {

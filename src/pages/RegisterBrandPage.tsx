@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 
 const RegisterBrandPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [form, setForm] = useState({
     name: '',
     surname: '',
@@ -26,7 +24,7 @@ const RegisterBrandPage: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...form, role: 'brand' }), // Añade el rol de la cuenta
+        body: JSON.stringify({ ...form, role: 'brand' }),
       });
 
       if (!response.ok) {
@@ -34,9 +32,8 @@ const RegisterBrandPage: React.FC = () => {
       }
 
       const data = await response.json();
-      login(data.accessToken, data.refreshToken);
-      alert('Registro exitoso. Por favor verifica tu correo electrónico.');
-      navigate('/home');
+      console.log("Registro exitoso:", data);
+      navigate('/verify-email');
     } catch (error) {
       alert((error as Error).message);
     }

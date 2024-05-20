@@ -6,15 +6,17 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import { AuthProvider } from './context/AuthContext';
 import RegisterPage from './pages/RegisterPage';
+import RegisterBrandPage from './pages/RegisterBrandPage';
 import AccountPage from './pages/AccountPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import EmailVerifiedPage from './pages/VerifyEmailCallbackPage';
 import DeleteAccount from './components/DeleteAccount';
 import ProtectedRoute from './components/ProtectedRoute';
-import RegisterBrandPage from './pages/RegisterBrandPage';
+
 
 const App: React.FC = () => {
-  const location = useLocation(); // Hook para obtener la ubicación actual
+  const location = useLocation();
+  const hostname = window.location.hostname;
 
   return (
     <AuthProvider>
@@ -23,8 +25,11 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/business/register" element={<RegisterBrandPage />} />
+        {hostname.includes('business') ? (
+            <Route path="/register" element={<RegisterBrandPage />} />
+          ) : (
+            <Route path="/register" element={<RegisterPage />} />
+          )}
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/verify" element={<EmailVerifiedPage />} />
         <Route path="/home" element={<ProtectedRoute />} />
