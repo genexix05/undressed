@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { setAccessToken, setRefreshToken } from '../utils/auth';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage: React.FC = () => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const response = await fetch('http://localhost:3001/login', {
@@ -17,66 +18,48 @@ const LoginPage: React.FC = () => {
         },
         body: JSON.stringify({ email, password }),
       });
+
       if (!response.ok) {
-        throw new Error('Error en el inicio de sesión');
+        throw new Error('Credenciales incorrectas');
       }
+
       const data = await response.json();
-      console.log('Inicio de sesión exitoso:', data);
-      setAccessToken(data.accessToken);
-      setRefreshToken(data.refreshToken);
-      navigate('/home'); // Redirigir a la página de inicio
+      login(data.accessToken, data.refreshToken);
+      navigate('/home');
     } catch (error) {
-      console.error('Error al iniciar sesión:', error);
+      alert((error as Error).message);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="px-8 py-6 mt-4 text-left bg-white shadow-lg max-w-md w-full">
-        <h3 className="text-2xl font-bold text-center">Iniciar Sesión</h3>
-        <form onSubmit={handleLogin}>
-          <div className="mt-4">
-            <div>
-              <label className="block" htmlFor="email">
-                Correo Electrónico
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 mt-2 border rounded-md"
-                required
-              />
-            </div>
-            <div>
-              <label className="block" htmlFor="password">
-                Contraseña
-              </label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 mt-2 border rounded-md"
-                required
-              />
-            </div>
-            <div className="flex justify-between items-center mt-6">
-              <button
-                type="submit"
-                className="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:bg-blue-700 rounded-md"
-              >
-                Iniciar Sesión
-              </button>
-              <Link to="/register" className="text-blue-600 hover:underline">
-                ¿No tienes cuenta? Regístrate
-              </Link>
-            </div>
-          </div>
-        </form>
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-10 p-4 border rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-4 text-center">Iniciar Sesión</h2>
+      <div className="mb-4">
+        <label className="block mb-1" htmlFor="email">Correo Electrónico</label>
+        <input
+          type="email"
+          id="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full border p-2 rounded"
+          required
+        />
       </div>
-    </div>
+      <div className="mb-4">
+        <label className="block mb-1" htmlFor="password">Contraseña</label>
+        <input
+          type="password"
+          id="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full border p-2 rounded"
+          required
+        />
+      </div>
+      <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
+        Iniciar Sesión
+      </button>
+    </form>
   );
 };
 

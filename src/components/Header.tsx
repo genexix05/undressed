@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from '../context/AuthContext';
-import { FaUserCircle } from 'react-icons/fa'; // Icono de cuenta
+import { useAuth } from "../context/AuthContext";
+import { FaUserCircle } from "react-icons/fa";
 
 const Header: React.FC = () => {
   const { isAuthenticated } = useAuth(); // Obtener el usuario actual del contexto de autenticación
@@ -104,9 +104,7 @@ const Header: React.FC = () => {
                 Mi cuenta
               </Link>
             )}
-            <div className="md:hidden">
-              {/* Botón de menú móvil aquí */}
-            </div>
+            <div className="md:hidden">{/* Botón de menú móvil aquí */}</div>
           </div>
           {/* End Button Group */}
           {/* Collapse */}

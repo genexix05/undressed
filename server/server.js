@@ -17,6 +17,8 @@ const { v4: uuidv4 } = require("uuid");
 const { google } = require("googleapis");
 const OAuth2 = google.auth.OAuth2;
 
+const authenticateToken = require("../src/middleware/authMiddleware");
+
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
@@ -41,6 +43,7 @@ const pool = mysql.createPool({
 });
 
 const promisePool = pool.promise();
+module.exports = promisePool;
 
 const createTransporter = async () => {
   const oauth2Client = new OAuth2(
@@ -133,11 +136,16 @@ app.get("/verify", async (req, res) => {
   const { token } = req.query;
 
   if (!token) {
-    return res.status(400).json({ error: "Solicitud inválida. No se proporcionó token." });
+    return res
+      .status(400)
+      .json({ error: "Solicitud inválida. No se proporcionó token." });
   }
 
   try {
-    const [rows] = await promisePool.query("SELECT * FROM users WHERE verification_token = ?", [token]);
+    const [rows] = await promisePool.query(
+      "SELECT * FROM users WHERE verification_token = ?",
+      [token]
+    );
 
     if (rows.length === 0) {
       return res.status(404).json({ error: "Token inválido o expirado" });
@@ -145,24 +153,47 @@ app.get("/verify", async (req, res) => {
 
     const user = rows[0];
 
-    if (user.is_verified === 'true') {
-      const accessToken = jwt.sign({ userId: user.id, email: user.email }, ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
-      const refreshToken = jwt.sign({ userId: user.id, email: user.email }, REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
-      return res.redirect(`http://localhost:3000/home?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+    if (user.is_verified === "true") {
+      const accessToken = jwt.sign(
+        { userId: user.id, email: user.email },
+        ACCESS_TOKEN_SECRET,
+        { expiresIn: "1h" }
+      );
+      const refreshToken = jwt.sign(
+        { userId: user.id, email: user.email },
+        REFRESH_TOKEN_SECRET,
+        { expiresIn: "7d" }
+      );
+      return res.redirect(
+        `http://localhost:3000/home?accessToken=${accessToken}&refreshToken=${refreshToken}`
+      );
     }
 
-    await promisePool.query("UPDATE users SET is_verified = 'true', verification_token = NULL WHERE id = ?", [user.id]);
+    await promisePool.query(
+      "UPDATE users SET is_verified = 'true', verification_token = NULL WHERE id = ?",
+      [user.id]
+    );
 
-    const accessToken = jwt.sign({ userId: user.id, email: user.email }, ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
-    const refreshToken = jwt.sign({ userId: user.id, email: user.email }, REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
+    const accessToken = jwt.sign(
+      { userId: user.id, email: user.email },
+      ACCESS_TOKEN_SECRET,
+      { expiresIn: "1h" }
+    );
+    const refreshToken = jwt.sign(
+      { userId: user.id, email: user.email },
+      REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
 
-    res.redirect(`http://localhost:3000/home?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+    res.redirect(
+      `http://localhost:3000/home?accessToken=${accessToken}&refreshToken=${refreshToken}`
+    );
   } catch (error) {
-    res.status(500).json({ error: "Error al verificar el usuario: " + error.message });
+    res
+      .status(500)
+      .json({ error: "Error al verificar el usuario: " + error.message });
   }
 });
-
-
 
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -239,6 +270,69 @@ app.post("/token", async (req, res) => {
 
     res.json({ accessToken: newAccessToken });
   });
+});
+
+app.delete("/deleteAccount", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const [result] = await promisePool.query("DELETE FROM users WHERE id = ?", [
+      userId,
+    ]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Cuenta no encontrada." });
+    }
+    await promisePool.query("DELETE FROM refresh_tokens WHERE user_id = ?", [
+      userId,
+    ]);
+    res.json({ message: "Cuenta eliminada correctamente." });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Error al eliminar la cuenta: " + error.message });
+  }
+});
+
+app.post("/logout", authenticateToken, async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) return res.sendStatus(401);
+
+  try {
+    const [result] = await promisePool.query("DELETE FROM refresh_tokens WHERE token = ?", [refreshToken]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Token de actualización no encontrado." });
+    }
+    res.sendStatus(204);
+  } catch (error) {
+    res.status(500).json({ error: "Error al cerrar la sesión: " + error.message });
+  }
+});
+
+app.get('/me', authenticateToken, async (req, res) => {
+  try {
+    const [rows] = await promisePool.query("SELECT name, surname, date, username, email FROM users WHERE id = ?", [req.user.userId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Usuario no encontrado." });
+    }
+    res.json(rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener los datos del usuario: " + error.message });
+  }
+});
+
+app.post('/update', authenticateToken, async (req, res) => {
+  const { name, surname, date, username, email } = req.body;
+  try {
+    const [result] = await promisePool.query(
+      "UPDATE users SET name = ?, surname = ?, date = ?, username = ?, email = ? WHERE id = ?",
+      [name, surname, date, username, email, req.user.userId]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Usuario no encontrado." });
+    }
+    res.json({ message: "Información actualizada correctamente." });
+  } catch (error) {
+    res.status(500).json({ error: "Error al actualizar los datos del usuario: " + error.message });
+  }
 });
 
 app.listen(port, () => {

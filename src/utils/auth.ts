@@ -23,6 +23,11 @@ export const isAuthenticated = (): boolean => {
   return getAccessToken() !== null;
 };
 
+export const logout = () => {
+  removeTokens();
+  window.location.href = '/login';
+};
+
 export const authHeader = (): { Authorization: string } | {} => {
   const token = getAccessToken();
   if (token) {

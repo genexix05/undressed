@@ -1,5 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getAccessToken, setAccessToken, removeTokens } from '../utils/auth';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import {
+  getAccessToken,
+  setAccessToken,
+  removeTokens,
+  logout as logoutUtil,
+} from "../utils/auth";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -31,6 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     removeTokens();
     setIsAuthenticated(false);
+    logoutUtil();
   };
 
   return (
@@ -43,7 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
