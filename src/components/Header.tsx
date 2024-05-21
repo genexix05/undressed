@@ -23,11 +23,10 @@ const Header: React.FC = () => {
               aria-label="Preline"
             >
               <img
-                src="../public/assets/images/und.png"
+                src="/assets/images/und.png"
                 alt="Undressed"
                 className="h-10"
-              />{" "}
-              {/* Reemplaza con la ruta a tu imagen */}
+              />
             </a>
           </div>
           {/* Button Group */}
@@ -35,13 +34,13 @@ const Header: React.FC = () => {
             {!isAuthenticated ? (
               <>
                 <Link
-                  to="/login" // Ajusta el path según tus rutas
+                  to="/login"
                   className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-xl border border-gray-200 text-black hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
                 >
                   Iniciar sesión
                 </Link>
                 <Link
-                  to="/register" // Ajusta el path según tus rutas
+                  to="/register"
                   className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-xl border border-transparent bg-gradient-to-tr from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition focus:outline-none focus:from-purple-600 focus:to-pink-600"
                 >
                   Registrarse
@@ -49,10 +48,10 @@ const Header: React.FC = () => {
               </>
             ) : (
               <Link
-                to="/account" // Ajusta el path según tus rutas
+                to="/account" 
                 className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-xl border border-transparent bg-gradient-to-tr from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition focus:outline-none focus:from-purple-600 focus:to-pink-600"
               >
-                <FaUserCircle className="text-xl" /> {/* Icono de cuenta */}
+                <FaUserCircle className="text-xl" /> 
                 Mi cuenta
               </Link>
             )}
