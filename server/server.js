@@ -358,6 +358,9 @@ app.post("/token", async (req, res) => {
   });
 });
 
+
+// Cosas de la cuenta
+
 app.delete("/deleteAccount", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -434,6 +437,60 @@ app.post("/update", authenticateToken, async (req, res) => {
     });
   }
 });
+
+
+// Registro de marcas
+
+// Endpoint para crear una nueva marca
+app.post("/create-brand", authenticateToken, async (req, res) => {
+  const { name } = req.body;
+
+  if (req.user.role !== 'brand') {
+    return res.status(403).send("Acceso denegado. Solo los usuarios con el rol 'brand' pueden crear marcas.");
+  }
+
+  try {
+    const [result] = await promisePool.query(
+      "INSERT INTO brands (name, owner_id) VALUES (?, ?)",
+      [name, req.user.userId]
+    );
+
+    await promisePool.query(
+      "INSERT INTO brand_users (brand_id, user_id, role) VALUES (?, ?, ?)",
+      [result.insertId, req.user.userId, 'admin']
+    );
+
+    res.send({ message: "Marca creada correctamente.", brandId: result.insertId });
+  } catch (error) {
+    console.error("Error al crear la marca:", error);
+    res.status(500).send("Error al crear la marca.");
+  }
+});
+
+
+// Invitar usuarios a marcas
+
+app.post("/invite-user-to-brand", authenticateToken, async (req, res) => {
+  const { brandId, userId, role } = req.body;
+  const invitationToken = uuidv4();
+
+  try {
+    const [result] = await promisePool.query(
+      "INSERT INTO brand_users (brand_id, user_id, role, invitation_token) VALUES (?, ?, ?, ?)",
+      [brandId, userId, role, invitationToken]
+    );
+
+    res.send({
+      message: "Usuario invitado correctamente",
+      invitationToken: invitationToken
+    });
+  } catch (error) {
+    console.error("Error al invitar usuario a la marca:", error);
+    res.status(500).send({ error: "Error en la invitación: " + error.message });
+  }
+});
+
+
 
 app.listen(port, () => {
   console.log(`Node server listening at http://localhost:${port}`);

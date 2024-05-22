@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { FaUserCircle, FaSearch } from "react-icons/fa";
+import { FaUserCircle, FaSearch, FaPlusCircle, FaSignInAlt } from "react-icons/fa"; // Asegúrate de importar los iconos necesarios
 import "../fonts.css";
 
 const Header: React.FC = () => {
@@ -54,13 +54,33 @@ const Header: React.FC = () => {
                 </Link>
               </>
             ) : (
-              <Link
-                to="/account" 
-                className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-xl border border-transparent bg-gradient-to-tr from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition focus:outline-none focus:from-purple-600 focus:to-pink-600"
-              >
-                <FaUserCircle className="text-xl" /> 
-                Mi cuenta
-              </Link>
+              <>
+                {userRole === 'brand' && (
+                  <>
+                    <Link
+                      to="/create-brand"
+                      className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-purple-500 text-black hover:bg-gradient-to-tr hover:from-purple-500 hover:to-pink-500 hover:text-white transition focus:outline-none whitespace-nowrap"
+                    >
+                      <FaPlusCircle className="text-lg" />
+                      <span>Crear Marca</span>
+                    </Link>
+                    <Link
+                      to="/join-brand"
+                      className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-purple-500 text-black hover:bg-gradient-to-tr hover:from-purple-500 hover:to-pink-500 hover:text-white transition focus:outline-none whitespace-nowrap"
+                    >
+                      <FaSignInAlt className="text-lg" />
+                      <span>Unirse Marca</span>
+                    </Link>
+                  </>
+                )}
+                <Link
+                  to="/account"
+                  className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-transparent bg-gradient-to-tr from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition focus:outline-none focus:from-purple-600 focus:to-pink-600 whitespace-nowrap"
+                >
+                  <FaUserCircle className="text-lg" /> 
+                  <span>Mi cuenta</span>
+                </Link>
+              </>
             )}
             <div className="md:hidden">{/* Botón de menú móvil aquí */}</div>
           </div>
@@ -76,8 +96,8 @@ const Header: React.FC = () => {
                   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-500" />
                   <input
                     type="text"
-                    placeholder="Search.."
-                    className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-full focus:outline-none focus:border-gray-400"
+                    placeholder="Buscar productos/usuarios/marcas..."
+                    className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-full focus:outline-none focus:border-gray-400 placeholder-sm"
                   />
                 </div>
               </div>
