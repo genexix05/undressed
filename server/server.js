@@ -85,76 +85,10 @@ const createTransporter = async () => {
   return transporter;
 };
 
-// Registro Usuarios
-
-app.post("/register", async (req, res) => {
-  const { name, surname, date, username, email, password, role } = req.body;
-  const verificationToken = uuidv4();
-  const saltRounds = 10;
-
-  try {
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const [result] = await promisePool.query(
-      "INSERT INTO users (name, surname, date, username, email, password, role, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        name,
-        surname,
-        date,
-        username,
-        email,
-        hashedPassword,
-        role,
-        verificationToken,
-      ]
-    );
-
-    const accessToken = jwt.sign(
-      { userId: result.insertId, email: email, role: role },
-      ACCESS_TOKEN_SECRET,
-      { expiresIn: "1h" }
-    );
-
-    const refreshToken = jwt.sign(
-      { userId: result.insertId, email: email, role: role },
-      REFRESH_TOKEN_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
-    await promisePool.query(
-      "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
-      [result.insertId, refreshToken, expiresAt]
-    );
-
-    const verificationLink = `http://localhost:3001/verify?token=${verificationToken}`;
-    const transporter = await createTransporter();
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Verifica tu cuenta",
-      html: `<p>Gracias por registrarte! Por favor verifica tu cuenta haciendo clic en el siguiente enlace: <a href="${verificationLink}">Verificar Cuenta</a></p>`,
-    });
-
-    console.log("Correo de verificación enviado.");
-    res.send({
-      message:
-        "Usuario registrado correctamente, se ha enviado un correo de verificación.",
-      userId: result.insertId,
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-    });
-  } catch (error) {
-    console.error("Error en el proceso de registro:", error);
-    res.status(500).send({ error: "Error en el registro: " + error.message });
-  }
-});
-
 // Registro de Marcas
 
-const businessRouter = express.Router();
-
-businessRouter.post("/register", async (req, res) => {
+app.post("/register-brand", async (req, res) => {
+  console.log("Registro de marca solicitado");
   const { name, surname, date, username, email, password } = req.body;
   const verificationToken = uuidv4();
   const saltRounds = 10;
@@ -177,13 +111,13 @@ businessRouter.post("/register", async (req, res) => {
 
     const accessToken = jwt.sign(
       { userId: result.insertId, email: email, role: "brand" },
-      ACCESS_TOKEN_SECRET,
+      process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "1h" }
     );
 
     const refreshToken = jwt.sign(
       { userId: result.insertId, email: email, role: "brand" },
-      REFRESH_TOKEN_SECRET,
+      process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: "7d" }
     );
 
@@ -205,8 +139,7 @@ businessRouter.post("/register", async (req, res) => {
 
     console.log("Correo de verificación enviado.");
     res.send({
-      message:
-        "Marca registrada correctamente, se ha enviado un correo de verificación.",
+      message: "Marca registrada correctamente, se ha enviado un correo de verificación.",
       userId: result.insertId,
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -217,7 +150,70 @@ businessRouter.post("/register", async (req, res) => {
   }
 });
 
-app.use(subdomain("business", businessRouter));
+// Registro Usuarios
+
+app.post("/register", async (req, res) => {
+  const { name, surname, date, username, email, password } = req.body;
+  const verificationToken = uuidv4();
+  const saltRounds = 10;
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const [result] = await promisePool.query(
+      "INSERT INTO users (name, surname, date, username, email, password, role, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        name,
+        surname,
+        date,
+        username,
+        email,
+        hashedPassword,
+        "user",
+        verificationToken,
+      ]
+    );
+
+    const accessToken = jwt.sign(
+      { userId: result.insertId, email: email, role: "user" },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    const refreshToken = jwt.sign(
+      { userId: result.insertId, email: email, role: "user" },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+    await promisePool.query(
+      "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+      [result.insertId, refreshToken, expiresAt]
+    );
+
+    const verificationLink = `http://localhost:3001/verify?token=${verificationToken}`;
+    const transporter = await createTransporter();
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Verifica tu cuenta",
+      html: `<p>Gracias por registrarte! Por favor verifica tu cuenta haciendo clic en el siguiente enlace: <a href="${verificationLink}">Verificar Cuenta</a></p>`,
+    });
+
+    console.log("Correo de verificación enviado.");
+    res.send({
+      message: "Usuario registrado correctamente, se ha enviado un correo de verificación.",
+      userId: result.insertId,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    });
+  } catch (error) {
+    console.error("Error en el proceso de registro:", error);
+    res.status(500).send({ error: "Error en el registro: " + error.message });
+  }
+});
+
 
 // Verificación de Usuarios por correo
 
@@ -244,13 +240,13 @@ app.get("/verify", async (req, res) => {
 
     if (user.is_verified === "true") {
       const accessToken = jwt.sign(
-        { userId: user.id, email: user.email },
-        ACCESS_TOKEN_SECRET,
+        { userId: user.id, email: user.email, role: user.role },
+        process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: "1h" }
       );
       const refreshToken = jwt.sign(
-        { userId: user.id, email: user.email },
-        REFRESH_TOKEN_SECRET,
+        { userId: user.id, email: user.email, role: user.role },
+        process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: "7d" }
       );
       return res.redirect(
@@ -264,13 +260,13 @@ app.get("/verify", async (req, res) => {
     );
 
     const accessToken = jwt.sign(
-      { userId: user.id, email: user.email },
-      ACCESS_TOKEN_SECRET,
+      { userId: user.id, email: user.email, role: user.role },
+      process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "1h" }
     );
     const refreshToken = jwt.sign(
-      { userId: user.id, email: user.email },
-      REFRESH_TOKEN_SECRET,
+      { userId: user.id, email: user.email, role: user.role },
+      process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: "7d" }
     );
 
@@ -283,6 +279,7 @@ app.get("/verify", async (req, res) => {
       .json({ error: "Error al verificar el usuario: " + error.message });
   }
 });
+
 
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -302,14 +299,14 @@ app.post("/login", async (req, res) => {
     }
 
     const accessToken = jwt.sign(
-      { userId: user.id, email: user.email },
-      ACCESS_TOKEN_SECRET,
+      { userId: user.id, email: user.email, role: user.role },
+      process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "1h" }
     );
 
     const refreshToken = jwt.sign(
-      { userId: user.id, email: user.email },
-      REFRESH_TOKEN_SECRET,
+      { userId: user.id, email: user.email, role: user.role },
+      process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: "7d" }
     );
 

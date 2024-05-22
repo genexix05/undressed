@@ -37,8 +37,7 @@ const RegisterPage: React.FC = () => {
       }
       const data = await response.json();
       console.log("Registro exitoso:", data);
-      // No guardar tokens ni redirigir a home aún
-      navigate("/verify-email"); // Redirigir a la página de verificación de correo
+      navigate("/verify-email");
     } catch (error) {
       console.error("Error al registrar:", error);
     }

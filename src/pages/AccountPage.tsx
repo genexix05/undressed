@@ -4,7 +4,7 @@ import { getAccessToken, getRefreshToken, removeTokens } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
 
 const AccountPage: React.FC = () => {
-  const { logout } = useAuth();
+  const { logout, isAuthenticated, userRole } = useAuth();
   const navigate = useNavigate();
 
   const [userInfo, setUserInfo] = useState({
@@ -162,6 +162,10 @@ const AccountPage: React.FC = () => {
           className="w-full border p-2 rounded"
         />
       </div>
+      <div>
+          <p>Role: {userRole}</p>
+          <p>You are logged in.</p>
+        </div>
       <button onClick={handleUpdate} className="bg-blue-500 text-white p-2 rounded mr-2">
         Actualizar Información
       </button>

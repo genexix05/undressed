@@ -25,11 +25,13 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        {hostname.includes('business') ? (
+        {/* {hostname.includes('business') ? (
             <Route path="/register" element={<RegisterBrandPage />} />
           ) : (
             <Route path="/register" element={<RegisterPage />} />
-          )}
+          )} */}
+        <Route path="/register-brand" element={<RegisterBrandPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/verify" element={<EmailVerifiedPage />} />
         <Route path="/home" element={<ProtectedRoute />} />

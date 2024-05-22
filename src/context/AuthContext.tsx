@@ -9,6 +9,7 @@ import {
   getAccessToken,
   setAccessToken,
   getRefreshToken,
+  setRefreshToken,
   removeTokens,
   decodeToken,
 } from "../utils/auth";
@@ -33,26 +34,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const token = getAccessToken();
     if (token) {
-      setIsAuthenticated(true);
+      console.log("Token before decoding:", token);
       const decodedToken = decodeToken(token);
+      console.log("Decoded token:", decodedToken);
       if (decodedToken) {
-        setUserRole(decodedToken.role);
+        setIsAuthenticated(true);
+        setUserRole(String(decodedToken.role)); // Convert the value to a string
+        console.log(
+          "Role decoded from token on initial load:",
+          decodedToken.role
+        );
       } else {
         setIsAuthenticated(false);
         setUserRole(null);
+        console.log("Token could not be decoded");
       }
     }
   }, []);
 
   const login = (accessToken: string, refreshToken: string) => {
     setAccessToken(accessToken);
+    setRefreshToken(refreshToken);
     const decodedToken = decodeToken(accessToken);
     if (decodedToken) {
-      setUserRole(decodedToken.role);
       setIsAuthenticated(true);
+      setUserRole(String(decodedToken.role)); // Convert the value to a string
+      console.log("Role decoded from token on login:", decodedToken.role);
     } else {
-      setUserRole(null);
       setIsAuthenticated(false);
+      setUserRole(null);
     }
   };
 

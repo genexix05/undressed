@@ -5,7 +5,14 @@ import { FaUserCircle, FaSearch } from "react-icons/fa";
 import "../fonts.css";
 
 const Header: React.FC = () => {
-  const { isAuthenticated } = useAuth(); // Obtener el usuario actual del contexto de autenticación
+  const { isAuthenticated, userRole } = useAuth(); // Obtener el usuario actual del contexto de autenticación
+
+  const getLogo = () => {
+    if (userRole === 'brand') {
+      return '/assets/images/und-negro.png'; // Ruta de la imagen para marcas
+    }
+    return '/assets/images/und.png'; // Ruta de la imagen para usuarios normales
+  };
 
   return (
     <>
@@ -23,7 +30,7 @@ const Header: React.FC = () => {
               aria-label="Preline"
             >
               <img
-                src="/assets/images/und.png"
+                src={getLogo()}
                 alt="Undressed"
                 className="h-10"
               />
