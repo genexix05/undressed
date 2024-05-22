@@ -1,6 +1,7 @@
 // App.tsx
 import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
+import ControlPanel from './components/ControlPanel';
 import Header from './components/Header';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -13,6 +14,7 @@ import EmailVerifiedPage from './pages/VerifyEmailCallbackPage';
 import DeleteAccount from './components/DeleteAccount';
 import ProtectedRoute from './components/ProtectedRoute';
 import BrandPage from './pages/BrandPage';
+
 
 
 const App: React.FC = () => {
@@ -34,6 +36,9 @@ const App: React.FC = () => {
         <Route path="/account" element={<AccountPage />} />
         <Route path="/brand" element={<BrandPage />} />
         <Route path="/create-brand" element={<BrandPage />} />
+        <Route element={<ProtectedRoute role="brand" />}>
+          <Route path="/control-panel/*" element={<ControlPanel />} />
+        </Route>
         <Route element={<ProtectedRoute />}>
           <Route path="/home" element={<HomePage />} />
         </Route>
