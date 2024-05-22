@@ -1,17 +1,17 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { FaUserCircle, FaSearch, FaPlusCircle, FaSignInAlt } from "react-icons/fa"; // Asegúrate de importar los iconos necesarios
+import { FaUserCircle, FaSearch, FaPlusCircle, FaSignInAlt, FaCogs } from "react-icons/fa"; // Asegúrate de importar los iconos necesarios
 import "../fonts.css";
 
 const Header: React.FC = () => {
-  const { isAuthenticated, userRole } = useAuth(); // Obtener el usuario actual del contexto de autenticación
+  const { isAuthenticated, userRole, isInBrand } = useAuth();
 
   const getLogo = () => {
     if (userRole === 'brand') {
-      return '/assets/images/und-negro.png'; // Ruta de la imagen para marcas
+      return '/assets/images/und-negro.png';
     }
-    return '/assets/images/und.png'; // Ruta de la imagen para usuarios normales
+    return '/assets/images/und.png';
   };
 
   return (
@@ -23,7 +23,6 @@ const Header: React.FC = () => {
           aria-label="Global"
         >
           <div className="md:col-span-3">
-            {/* Logo and text grouped together using Flexbox */}
             <a
               className="flex items-center space-x-2 rounded-xl text-xl inline-block font-semibold focus:outline-none focus:opacity-80"
               href="/home"
@@ -55,60 +54,67 @@ const Header: React.FC = () => {
               </>
             ) : (
               <>
-                {userRole === 'brand' && (
-                  <>
-                    <Link
-                      to="/create-brand"
-                      className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-purple-500 text-black hover:bg-gradient-to-tr hover:from-purple-500 hover:to-pink-500 hover:text-white transition focus:outline-none whitespace-nowrap"
+                {userRole === 'brand' && isInBrand ? (
+                  <Link
+                    to="/control-panel"
+                    className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-purple-500 text-black hover:bg-gradient-to-tr hover:from-purple-500 hover:to-pink-500 hover:text-white transition focus:outline-none whitespace-nowrap"
                     >
-                      <FaPlusCircle className="text-lg" />
-                      <span>Crear Marca</span>
+                      <FaCogs className="text-lg" />
+                      <span>Panel de Control</span>
                     </Link>
-                    <Link
-                      to="/join-brand"
-                      className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-purple-500 text-black hover:bg-gradient-to-tr hover:from-purple-500 hover:to-pink-500 hover:text-white transition focus:outline-none whitespace-nowrap"
-                    >
-                      <FaSignInAlt className="text-lg" />
-                      <span>Unirse Marca</span>
-                    </Link>
-                  </>
-                )}
-                <Link
-                  to="/account"
-                  className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-transparent bg-gradient-to-tr from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition focus:outline-none focus:from-purple-600 focus:to-pink-600 whitespace-nowrap"
-                >
-                  <FaUserCircle className="text-lg" /> 
-                  <span>Mi cuenta</span>
-                </Link>
-              </>
-            )}
-            <div className="md:hidden">{/* Botón de menú móvil aquí */}</div>
-          </div>
-          {/* End Button Group */}
-          {/* Collapse */}
-          <div
-            id="navbar-collapse-with-animation"
-            className="hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow md:block md:w-auto md:basis-auto md:order-2 md:col-span-6"
-          >
-            <div className="flex flex-col gap-y-4 gap-x-0 mt-5 md:flex-row md:justify-center md:items-center md:gap-y-0 md:gap-x-7 md:mt-0">
-              <div className="relative w-full md:w-1/2">
-                <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-500" />
-                  <input
-                    type="text"
-                    placeholder="Buscar productos/usuarios/marcas..."
-                    className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-full focus:outline-none focus:border-gray-400 placeholder-sm"
-                  />
+                  ) : (
+                    <>
+                      <Link
+                        to="/create-brand"
+                        className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-purple-500 text-black hover:bg-gradient-to-tr hover:from-purple-500 hover:to-pink-500 hover:text-white transition focus:outline-none whitespace-nowrap"
+                      >
+                        <FaPlusCircle className="text-lg" />
+                        <span>Crear Marca</span>
+                      </Link>
+                      <Link
+                        to="/join-brand"
+                        className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-purple-500 text-black hover:bg-gradient-to-tr hover:from-purple-500 hover:to-pink-500 hover:text-white transition focus:outline-none whitespace-nowrap"
+                      >
+                        <FaSignInAlt className="text-lg" />
+                        <span>Unirse Marca</span>
+                      </Link>
+                    </>
+                  )}
+                  <Link
+                    to="/account"
+                    className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-transparent bg-gradient-to-tr from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition focus:outline-none focus:from-purple-600 focus:to-pink-600 whitespace-nowrap"
+                  >
+                    <FaUserCircle className="text-lg" />
+                    <span>Mi cuenta</span>
+                  </Link>
+                </>
+              )}
+              <div className="md:hidden">{/* Botón de menú móvil aquí */}</div>
+            </div>
+            {/* End Button Group */}
+            <div
+              id="navbar-collapse-with-animation"
+              className="hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow md:block md:w-auto md:basis-auto md:order-2 md:col-span-6"
+            >
+              <div className="flex flex-col gap-y-4 gap-x-0 mt-5 md:flex-row md:justify-center md:items-center md:gap-y-0 md:gap-x-7 md:mt-0">
+                <div className="relative w-full md:w-1/2">
+                  <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-500" />
+                    <input
+                      type="text"
+                      placeholder="Buscar productos/usuarios/marcas..."
+                      className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-full focus:outline-none focus:border-gray-400 placeholder-sm"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          {/* End Collapse */}
-        </nav>
-      </header>
-      {/* ========== END HEADER ========== */}
-    </>
-  );
-};
-
-export default Header;
+          </nav>
+        </header>
+        {/* ========== END HEADER ========== */}
+      </>
+    );
+  };
+  
+  export default Header;
+  

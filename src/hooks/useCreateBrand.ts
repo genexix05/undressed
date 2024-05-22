@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios, { AxiosError } from 'axios';
-import useAuth from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 
 const useCreateBrand = () => {
   const { accessToken } = useAuth();

@@ -490,6 +490,26 @@ app.post("/invite-user-to-brand", authenticateToken, async (req, res) => {
   }
 });
 
+// Api
+
+app.get('/api/check-in-brand', authenticateToken, async (req, res) => {
+  try {
+    const [rows] = await promisePool.query(
+      'SELECT 1 FROM brand_users WHERE user_id = ? LIMIT 1',
+      [req.user.userId]
+    );
+    if (rows.length > 0) {
+      res.json({ isInBrand: true });
+    } else {
+      res.json({ isInBrand: false });
+    }
+  } catch (error) {
+    console.error('Error checking brand status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 
 
 app.listen(port, () => {
