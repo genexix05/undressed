@@ -1,4 +1,3 @@
-import { jwtDecode } from "jwt-decode";
 import { decodeJwt } from 'jose';
 
 export const getAccessToken = (): string | null => {
@@ -37,17 +36,6 @@ interface DecodedToken {
   role: string;
   exp: number;
 }
-
-// export const decodeToken = (token: string): DecodedToken | null => {
-//   try {
-//     const decodedToken = jwtDecode(token);
-//     console.log('Decoded token:', decodedToken);
-//     return decodedToken as DecodedToken;
-//   } catch (error) {
-//     console.error('Error decoding token:', error);
-//     return null;
-//   }
-// };
 
 export const decodeToken = (token: string): DecodedToken | null => {
   try {
