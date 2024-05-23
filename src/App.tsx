@@ -5,7 +5,6 @@ import ControlPanel from "./components/ControlPanel";
 import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
-import { AuthProvider } from "./context/AuthContext";
 import RegisterPage from "./pages/RegisterPage";
 import RegisterBrandPage from "./pages/RegisterBrandPage";
 import AccountPage from "./pages/AccountPage";
@@ -15,6 +14,7 @@ import DeleteAccount from "./components/DeleteAccount";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BrandPage from "./pages/BrandPage";
 import Header from "./components/Header";
+import { AuthProvider } from "./context/AuthContext";
 
 const App: React.FC = () => {
   const location = useLocation();
@@ -28,6 +28,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
+          <Route path="/home" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register-brand" element={<RegisterBrandPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -40,9 +41,6 @@ const App: React.FC = () => {
           <Route path="/create-brand" element={<BrandPage />} />
           <Route element={<ProtectedRoute role="brand" />}>
             <Route path="/control-panel/*" element={<ControlPanel />} />
-          </Route>
-          <Route element={<ProtectedRoute />}>
-            <Route path="/home" element={<HomePage />} />
           </Route>
         </Route>
       </Routes>

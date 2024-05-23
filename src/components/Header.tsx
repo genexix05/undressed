@@ -1,17 +1,23 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { FaUserCircle, FaSearch, FaPlusCircle, FaSignInAlt, FaCogs } from 'react-icons/fa';
-import '../fonts.css';
+import React from "react";
+import { Link } from "react-router-dom";
+import { useAuthContext } from "../context/AuthContext";
+import {
+  FaUserCircle,
+  FaSearch,
+  FaPlusCircle,
+  FaSignInAlt,
+  FaCogs,
+} from "react-icons/fa";
+import "../fonts.css";
 
 const Header: React.FC = () => {
-  const { isAuthenticated, userRole, isInBrand } = useAuth();
+  const { isAuthenticated, userRole, isInBrand } = useAuthContext();
 
   const getLogo = () => {
-    if (userRole === 'brand') {
-      return '/assets/images/undn.png';
+    if (userRole === "brand") {
+      return "/assets/images/undn.png";
     }
-    return '/assets/images/und.png';
+    return "/assets/images/und.png";
   };
 
   return (
@@ -47,15 +53,17 @@ const Header: React.FC = () => {
             </>
           ) : (
             <>
-              {userRole === 'brand' && isInBrand ? (
-                <Link
-                  to="/control-panel"
-                  className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-purple-500 text-black hover:bg-gradient-to-tr hover:from-purple-500 hover:to-pink-500 hover:text-white transition focus:outline-none whitespace-nowrap"
-                >
-                  <FaCogs className="text-lg" />
-                  <span>Panel de Control</span>
-                </Link>
-              ) : (
+              {userRole === "brand" && isInBrand ? (
+                <>
+                  <Link
+                    to="/control-panel"
+                    className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-purple-500 text-black hover:bg-gradient-to-tr hover:from-purple-500 hover:to-pink-500 hover:text-white transition focus:outline-none whitespace-nowrap"
+                  >
+                    <FaCogs className="text-lg" />
+                    <span>Panel de Control</span>
+                  </Link>
+                </>
+              ) : userRole === "brand" && !isInBrand ? (
                 <>
                   <Link
                     to="/create-brand"
@@ -72,7 +80,7 @@ const Header: React.FC = () => {
                     <span>Unirse Marca</span>
                   </Link>
                 </>
-              )}
+              ) : null}
               <Link
                 to="/account"
                 className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-transparent bg-gradient-to-tr from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition focus:outline-none focus:from-purple-600 focus:to-pink-600 whitespace-nowrap"

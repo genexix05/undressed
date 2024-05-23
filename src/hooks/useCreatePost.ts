@@ -2,31 +2,31 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useAuthContext } from '../context/AuthContext';
 
-const useCreateBrand = () => {
+const useCreatePost = () => {
   const { accessToken } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createBrand = async (formData: FormData) => {
+  const createPost = async (formData: FormData) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('http://localhost:3001/create-brand', formData, {
+      const response = await axios.post('http://localhost:3001/api/create-post', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${accessToken}`,
         },
       });
       setLoading(false);
-      return response.data.success;
+      return response.data;
     } catch (err) {
       setLoading(false);
-      setError('Error al crear la marca');
-      return false;
+      setError('Error al crear la publicación');
+      return null;
     }
   };
 
-  return { createBrand, loading, error };
+  return { createPost, loading, error };
 };
 
-export default useCreateBrand;
+export default useCreatePost;

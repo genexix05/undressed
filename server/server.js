@@ -2,12 +2,14 @@ require("dotenv").config();
 const express = require("express");
 const subdomain = require("express-subdomain");
 const axios = require("axios");
-const app = express();
 const cors = require("cors");
-const port = 3001;
 const mysql = require("mysql2");
+const path = require('path');
+const app = express();
+const port = 3001;
 
 const bodyParser = require("body-parser");
+const multer = require('multer');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
@@ -112,7 +114,7 @@ app.post("/register-brand", async (req, res) => {
     const accessToken = jwt.sign(
       { userId: result.insertId, email: email, role: "brand" },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "5h" }
     );
 
     const refreshToken = jwt.sign(
@@ -176,7 +178,7 @@ app.post("/register", async (req, res) => {
     const accessToken = jwt.sign(
       { userId: result.insertId, email: email, role: "user" },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "5h" }
     );
 
     const refreshToken = jwt.sign(
@@ -262,7 +264,7 @@ app.get("/verify", async (req, res) => {
     const accessToken = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "5h" }
     );
     const refreshToken = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
@@ -301,7 +303,7 @@ app.post("/login", async (req, res) => {
     const accessToken = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "5h" }
     );
 
     const refreshToken = jwt.sign(
@@ -351,7 +353,7 @@ app.post("/token", async (req, res) => {
     const newAccessToken = jwt.sign(
       { userId: user.userId, email: user.email },
       ACCESS_TOKEN_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "5h" }
     );
 
     res.json({ accessToken: newAccessToken });
@@ -441,18 +443,41 @@ app.post("/update", authenticateToken, async (req, res) => {
 
 // Registro de marcas
 
-// Endpoint para crear una nueva marca
-app.post("/create-brand", authenticateToken, async (req, res) => {
-  const { name } = req.body;
+// Guardar Uploads
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, '../uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// Crear Marca
+
+app.post("/create-brand", authenticateToken, upload.single('logo'), async (req, res) => {
+  const { name, description } = req.body;
 
   if (req.user.role !== 'brand') {
     return res.status(403).send("Acceso denegado. Solo los usuarios con el rol 'brand' pueden crear marcas.");
   }
 
   try {
+    // Verifica si se ha subido un archivo
+    if (!req.file) {
+      return res.status(400).send("El logo de la marca es obligatorio.");
+    }
+
+    // Ruta del logo subido
+    const logoPath = req.file.path;
+
     const [result] = await promisePool.query(
-      "INSERT INTO brands (name, owner_id) VALUES (?, ?)",
-      [name, req.user.userId]
+      "INSERT INTO brands (name, description, logo, owner_id) VALUES (?, ?, ?, ?)",
+      [name, description, logoPath, req.user.userId]
     );
 
     await promisePool.query(
@@ -460,7 +485,7 @@ app.post("/create-brand", authenticateToken, async (req, res) => {
       [result.insertId, req.user.userId, 'admin']
     );
 
-    res.send({ message: "Marca creada correctamente.", brandId: result.insertId });
+    res.send({ message: "Marca creada correctamente.", brandId: result.insertId, success: true });
   } catch (error) {
     console.error("Error al crear la marca:", error);
     res.status(500).send("Error al crear la marca.");

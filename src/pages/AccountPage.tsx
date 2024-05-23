@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuthContext } from '../context/AuthContext';
 import { getAccessToken, getRefreshToken, removeTokens } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
 
 const AccountPage: React.FC = () => {
-  const { logout, isAuthenticated, userRole } = useAuth();
+  const { logout, isAuthenticated, userRole } = useAuthContext();
   const navigate = useNavigate();
 
   const [userInfo, setUserInfo] = useState({
