@@ -7,7 +7,7 @@ import Account from './Account';
 
 const ControlPanel: React.FC = () => {
   return (
-    <div className="flex pt-16"> {/* Ajusta el margen superior aquí */}
+    <div className="flex"> 
       {/* Sidebar */}
       <div
         id="application-sidebar"
@@ -15,9 +15,9 @@ const ControlPanel: React.FC = () => {
         hs-overlay-open:translate-x-0
         -translate-x-full transition-all duration-300 transform
         w-[260px]
-        fixed inset-y-0 start-0 z-40
+        fixed inset-y-0 start-0
         bg-white border-e border-gray-200
-        lg:block lg:translate-x-0 lg:end-auto lg:bottom-0"
+        lg:block lg:translate-x-0 lg:end-auto lg:bottom-0 pt-28"
       >
         <div className="px-8 pt-4">
           <a
@@ -140,8 +140,8 @@ const ControlPanel: React.FC = () => {
         </nav>
       </div>
       {/* Content */}
-      <div className="flex-1 pt-10 lg:pt-0 lg:ml-[260px]">
-        <div className="px-4 sm:px-6 md:px-8">
+      <div className="flex-1 lg:ml-[260px]">
+        <div className="px-4 sm:px-6 md:px-8"> 
           <Routes>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="users" element={<Users />} />

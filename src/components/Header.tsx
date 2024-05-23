@@ -9,7 +9,7 @@ const Header: React.FC = () => {
 
   const getLogo = () => {
     if (userRole === 'brand') {
-      return '/assets/images/und-negro.png';
+      return '/assets/images/undn.png';
     }
     return '/assets/images/und.png';
   };
