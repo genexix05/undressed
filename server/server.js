@@ -34,6 +34,7 @@ app.use(
 );
 app.use(bodyParser.json());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 app.get("/start_spider", (req, res) => {
   axios
@@ -450,7 +451,7 @@ app.post("/update", authenticateToken, async (req, res) => {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, '../uploads/');
+    cb(null, path.join(__dirname, '..', 'uploads'));
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -599,29 +600,27 @@ app.post("/api/create-post", authenticateToken, upload.array('images'), async (r
 
 // Obtener publicaciones
 
-app.get("/api/posts", authenticateToken, async (req, res) => {
+app.get('/api/posts', authenticateToken, async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
-
   const offset = (page - 1) * limit;
 
   try {
     const [rows] = await promisePool.query(
-      "SELECT p.id, p.title, p.content, p.created_at, u.username, GROUP_CONCAT(f.file_path) AS images FROM posts p LEFT JOIN post_files f ON p.id = f.post_id JOIN users u ON p.created_by = u.id GROUP BY p.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?",
+      'SELECT p.id, p.title, p.content, p.created_at as createdAt, u.username, (SELECT GROUP_CONCAT(file_path) FROM post_files WHERE post_id = p.id) as images FROM posts p JOIN users u ON p.created_by = u.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?',
       [parseInt(limit), parseInt(offset)]
     );
 
-    res.json({
-      posts: rows,
-      currentPage: page,
-      totalPages: Math.ceil(rows.length / limit),
-    });
+    const posts = rows.map(row => ({
+      ...row,
+      images: row.images ? row.images.split(',').map(image => `/uploads/${path.basename(image)}`) : []
+    }));
+
+    res.json({ posts });
   } catch (error) {
-    console.error("Error fetching posts:", error);
-    res.status(500).send("Error fetching posts.");
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-
 
 app.listen(port, () => {
   console.log(`Node server listening at http://localhost:${port}`);

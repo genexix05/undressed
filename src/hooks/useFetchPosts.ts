@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, PostType } from '../context/AuthContext';
 
 const useFetchPosts = (initialPage = 1, limit = 10) => {
   const { accessToken, posts, setPosts } = useAuth();
@@ -17,7 +17,7 @@ const useFetchPosts = (initialPage = 1, limit = 10) => {
         headers: { Authorization: `Bearer ${accessToken}` },
         params: { page, limit },
       });
-      setPosts(prevPosts => [...prevPosts, ...response.data.posts]);
+      setPosts((prevPosts: PostType[]) => [...prevPosts, ...response.data.posts]);
       setHasMore(response.data.posts.length > 0);
     } catch (err) {
       setError('Error al obtener las publicaciones');
@@ -26,8 +26,10 @@ const useFetchPosts = (initialPage = 1, limit = 10) => {
   };
 
   useEffect(() => {
-    fetchPosts(page);
-  }, [page]);
+    if (accessToken) {
+      fetchPosts(page);
+    }
+  }, [page, accessToken]);
 
   return { posts, loading, error, hasMore, setPage };
 };
