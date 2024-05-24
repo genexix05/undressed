@@ -606,13 +606,30 @@ app.get('/api/posts', authenticateToken, async (req, res) => {
 
   try {
     const [rows] = await promisePool.query(
-      'SELECT p.id, p.title, p.content, p.created_at as createdAt, u.username, (SELECT GROUP_CONCAT(file_path) FROM post_files WHERE post_id = p.id) as images FROM posts p JOIN users u ON p.created_by = u.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?',
+      `SELECT 
+        p.id, 
+        p.title, 
+        p.content, 
+        p.created_at as createdAt, 
+        b.name as brandName, 
+        b.logo as brandLogo, 
+        (SELECT GROUP_CONCAT(file_path) FROM post_files WHERE post_id = p.id) as images 
+      FROM 
+        posts p 
+      JOIN 
+        brand_users bu ON p.created_by = bu.user_id 
+      JOIN 
+        brands b ON bu.brand_id = b.id 
+      ORDER BY 
+        p.created_at DESC 
+      LIMIT ? OFFSET ?`,
       [parseInt(limit), parseInt(offset)]
     );
 
     const posts = rows.map(row => ({
       ...row,
-      images: row.images ? row.images.split(',').map(image => `/uploads/${path.basename(image)}`) : []
+      images: row.images ? row.images.split(',').map(image => `/uploads/${path.basename(image)}`) : [],
+      brandLogo: row.brandLogo ? `/uploads/${path.basename(row.brandLogo)}` : null
     }));
 
     res.json({ posts });
@@ -621,6 +638,7 @@ app.get('/api/posts', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 app.listen(port, () => {
   console.log(`Node server listening at http://localhost:${port}`);

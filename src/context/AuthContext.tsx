@@ -6,7 +6,8 @@ export interface PostType {
   id: number;
   title: string;
   content: string;
-  username: string;
+  brandName: string;
+  brandLogo: string;
   images: string[];
   createdAt: string;
 }

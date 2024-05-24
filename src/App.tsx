@@ -24,7 +24,8 @@ const App: React.FC = () => {
     <AuthProvider>
       {location.pathname !== "/register" &&
         location.pathname !== "/verify-email" &&
-        location.pathname !== "/verify" && <Header />}
+        location.pathname !== "/verify" &&
+        location.pathname !== "/login" && <Header />}
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />

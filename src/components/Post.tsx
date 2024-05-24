@@ -1,14 +1,17 @@
 import React from 'react';
 import { FaHeart, FaShare, FaBookmark, FaCommentDots } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/swiper-bundle.css'; // Cambiado a esta ruta
+import 'swiper/swiper-bundle.css';
 import { PostType } from '../context/AuthContext';
 
-const Post: React.FC<PostType> = ({ id, title, content, username, images, createdAt }) => {
+const Post: React.FC<PostType> = ({ id, title, content, brandName, brandLogo, images, createdAt }) => {
   return (
-    <div className="bg-white shadow-md rounded-lg mb-6 p-4 w-1/3 mx-auto" key={id}>
+    <div className="bg-white shadow-md rounded-lg mb-6 p-4 w-96 mx-auto" key={id}>
       <div className="flex items-center justify-between">
-        <h2 className="font-bold text-xl">{username}</h2>
+        <div className="flex items-center">
+          <img src={`http://localhost:3001${brandLogo}`} alt={`${brandName} logo`} className="h-10 w-10 rounded-full mr-3" />
+          <h2 className="font-bold text-xl">{brandName}</h2>
+        </div>
         <div className="text-gray-500 text-sm">{new Date(createdAt).toLocaleDateString()}</div>
       </div>
       
@@ -16,11 +19,13 @@ const Post: React.FC<PostType> = ({ id, title, content, username, images, create
         <Swiper spaceBetween={10} slidesPerView={1} className="mb-4">
           {images.map((image, index) => (
             <SwiperSlide key={index}>
-              <img 
-                className="w-full rounded-md" 
-                src={`http://localhost:3001${image}`} 
-                alt={`Post ${id} - Image ${index}`} 
-              />
+              <div className="relative pb-9/16">
+                <img 
+                  className="absolute h-full w-full object-contain rounded-md" 
+                  src={`http://localhost:3001${image}`} 
+                  alt={`Post ${id} - Image ${index}`} 
+                />
+              </div>
             </SwiperSlide>
           ))}
         </Swiper>
@@ -45,7 +50,7 @@ const Post: React.FC<PostType> = ({ id, title, content, username, images, create
       </div>
 
       <div className="mt-4 text-gray-600 text-sm">
-        <p>{title}</p>
+        <p className="font-bold">{title}</p>
         <p className="text-gray-700 mb-4">{content}</p>
       </div>
     </div>
