@@ -1,9 +1,9 @@
 import React from 'react';
-import { useAuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { getAccessToken, logout } from '../utils/auth';
 
 const DeleteAccount: React.FC = () => {
-  const { logout } = useAuthContext();
+  const { logout } = useAuth();
 
   const handleDeleteAccount = () => {
     fetch(`http://localhost:3001/deleteAccount`, {

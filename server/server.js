@@ -534,7 +534,28 @@ app.get('/api/check-in-brand', authenticateToken, async (req, res) => {
   }
 });
 
+app.post("/api/create-post", authenticateToken, async (req, res) => {
+  const { title, content, brandId } = req.body;
+  const files = req.files; // Asumiendo que estás usando algún middleware para manejar archivos
 
+  if (req.user.role !== 'brand') {
+    return res.status(403).send("Acceso denegado. Solo los usuarios con el rol 'brand' pueden crear publicaciones.");
+  }
+
+  try {
+    const [result] = await promisePool.query(
+      "INSERT INTO posts (brand_id, title, content, created_by) VALUES (?, ?, ?, ?)",
+      [brandId, title, content, req.user.userId]
+    );
+
+    // Manejo de archivos aquí si es necesario
+
+    res.send({ message: "Publicación creada correctamente.", postId: result.insertId });
+  } catch (error) {
+    console.error("Error al crear la publicación:", error);
+    res.status(500).send("Error al crear la publicación.");
+  }
+});
 
 
 app.listen(port, () => {

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { useAuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 const useCreateBrand = () => {
-  const { accessToken } = useAuthContext();
+  const { accessToken } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

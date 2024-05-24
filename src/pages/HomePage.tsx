@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import useAuth from '../hooks/useAuth';
+import useeAuth from '../hooks/useAuth';
 import Modal from '../components/Modal';
 import CreatePostForm from '../components/CreatePostForm';
-import { useAuthContext } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 const HomePage: React.FC = () => {
-  const { auth, refreshToken } = useAuth();
+  const { auth, refreshToken } = useeAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { userRole, isInBrand } = useAuthContext();
+  const { userRole, isInBrand } = useAuth();
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -20,7 +20,6 @@ const HomePage: React.FC = () => {
 
   return (
     <div>
-      <h1>Bienvenido a la página de inicio</h1>
       {userRole === 'brand' && isInBrand && (
         <button onClick={openModal} className="mt-4 text-blue-600">
           Crear Publicación

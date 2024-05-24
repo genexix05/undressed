@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useAuthContext } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import {
   FaUserCircle,
   FaSearch,
@@ -11,7 +11,7 @@ import {
 import "../fonts.css";
 
 const Header: React.FC = () => {
-  const { isAuthenticated, userRole, isInBrand } = useAuthContext();
+  const { isAuthenticated, userRole, isInBrand } = useAuth();
 
   const getLogo = () => {
     if (userRole === "brand") {

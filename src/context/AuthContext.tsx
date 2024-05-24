@@ -7,6 +7,7 @@ interface AuthContextType {
   userRole: string | null;
   accessToken: string | null;
   isInBrand: boolean;
+  brandId: string | null;
   login: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
 }
@@ -22,6 +23,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [accessToken, setAccessTokenState] = useState<string | null>(null);
   const [isInBrand, setIsInBrand] = useState<boolean>(false);
+  const [brandId, setBrandId] = useState<string | null>(null); // Añadir brandId
 
   useEffect(() => {
     const token = getAccessToken();
@@ -51,11 +53,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await axios.get('http://localhost:3001/api/check-in-brand', {
         headers: { Authorization: `Bearer ${token}` }
       });
+      setBrandId(response.data.brandId);
       setIsInBrand(response.data.isInBrand);
       console.log("Is in brand:", response.data.isInBrand);
+      console.log("Brand ID:", response.data.brandId);
     } catch (error) {
       console.error('Error checking brand status:', error);
       setIsInBrand(false);
+      setBrandId(null);
     }
   };
 
@@ -75,6 +80,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAuthenticated(false);
       setUserRole(null);
       setAccessTokenState(null);
+      setBrandId(null);
     }
   };
 
@@ -84,16 +90,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUserRole(null);
     setAccessTokenState(null);
     setIsInBrand(false);
+    setBrandId(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userRole, accessToken, isInBrand, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, userRole, accessToken, isInBrand, brandId, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuthContext = () => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");

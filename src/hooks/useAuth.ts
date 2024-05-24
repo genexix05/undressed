@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAccessToken, getRefreshToken, setAccessToken, setRefreshToken, removeTokens, isAuthenticated } from '../utils/auth';
 
-const useAuth = () => {
+const useeAuth = () => {
   const [auth, setAuth] = useState<{ accessToken: string | null }>({ accessToken: getAccessToken() });
   const navigate = useNavigate();
 
@@ -41,4 +41,4 @@ const useAuth = () => {
   return { auth, setAuth, refreshToken, isAuthenticated };
 };
 
-export default useAuth;
+export default useeAuth;

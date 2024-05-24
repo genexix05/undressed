@@ -1,13 +1,13 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 interface ProtectedRouteProps {
   role?: string;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ role }) => {
-  const { isAuthenticated, userRole } = useAuthContext();
+  const { isAuthenticated, userRole } = useAuth();
 
   if (role && userRole !== role) {
     return <Navigate to="/home" />;
