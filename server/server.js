@@ -639,6 +639,51 @@ app.get('/api/posts', authenticateToken, async (req, res) => {
   }
 });
 
+// Buscar
+
+app.get('/api/search', authenticateToken, async (req, res) => {
+  const { query } = req.query;
+
+  if (!query) {
+    return res.status(400).json({ error: 'Query parameter is required' });
+  }
+
+  const lowerCaseQuery = `%${query.toLowerCase()}%`;
+
+  try {
+    const [users] = await promisePool.query(
+      'SELECT id, username, profile_pic FROM users WHERE LOWER(username) LIKE ?',
+      [lowerCaseQuery]
+    );
+
+    const [brands] = await promisePool.query(
+      'SELECT id, name, logo FROM brands WHERE LOWER(name) LIKE ?',
+      [lowerCaseQuery]
+    );
+
+    const [products] = await promisePool.query(
+      'SELECT id, name, image_urls, price FROM products WHERE LOWER(name) LIKE ?',
+      [lowerCaseQuery]
+    );
+
+    // Parsear las URLs de las imágenes
+    const fixedProducts = products.map(product => {
+      const images = product.image_urls ? product.image_urls.split(',').map(url => url.trim()) : [];
+      return {
+        ...product,
+        image_urls: images.length > 0 ? images : []
+      };
+    });
+
+    res.json({ users, brands, products: fixedProducts });
+  } catch (error) {
+    console.error('Error searching:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
 
 app.listen(port, () => {
   console.log(`Node server listening at http://localhost:${port}`);

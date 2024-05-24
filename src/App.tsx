@@ -14,6 +14,7 @@ import DeleteAccount from "./components/DeleteAccount";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BrandPage from "./pages/BrandPage";
 import Header from "./components/Header";
+import SearchResults from "./components/SearchResults";
 import { AuthProvider } from "./context/AuthContext";
 
 const App: React.FC = () => {
@@ -40,6 +41,7 @@ const App: React.FC = () => {
           <Route path="/account" element={<AccountPage />} />
           <Route path="/brand" element={<BrandPage />} />
           <Route path="/create-brand" element={<BrandPage />} />
+          <Route path="/search" element={<SearchResults />} />
           <Route element={<ProtectedRoute role="brand" />}>
             <Route path="/control-panel/*" element={<ControlPanel />} />
           </Route>

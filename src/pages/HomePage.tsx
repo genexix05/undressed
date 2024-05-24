@@ -21,8 +21,8 @@ const HomePage: React.FC = () => {
   }, [auth, refreshToken]);
 
   return (
-    <div className="flex">
-      <div className="fixed left-0 top-0 h-screen flex flex-col items-center w-1/5 justify-center p-4">
+    <div className="flex bg-gray-100">
+      <div className="fixed left-0 top-0 h-screen flex flex-col items-center w-1/5 justify-center p-4 ">
         <Sidebar />
       </div>
       <div className="flex flex-col items-center w-3/5 ml-auto">

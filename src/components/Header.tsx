@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   FaUserCircle,
@@ -12,6 +12,13 @@ import "../fonts.css";
 
 const Header: React.FC = () => {
   const { isAuthenticated, userRole, isInBrand } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    navigate(`/search?query=${searchQuery}`);
+  };
 
   const getLogo = () => {
     if (userRole === "brand") {
@@ -97,16 +104,18 @@ const Header: React.FC = () => {
           className="hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow md:block md:w-auto md:basis-auto md:order-2 md:col-span-6"
         >
           <div className="flex flex-col gap-y-4 gap-x-0 mt-5 md:flex-row md:justify-center md:items-center md:gap-y-0 md:gap-x-7 md:mt-0">
-            <div className="relative w-full md:w-1/2">
+            <form className="relative w-full md:w-1/2" onSubmit={handleSearch}>
               <div className="relative">
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-500" />
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar productos/usuarios/marcas..."
                   className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-full focus:outline-none focus:border-gray-400 placeholder-sm"
                 />
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </nav>
