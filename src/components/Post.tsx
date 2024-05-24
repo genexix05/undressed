@@ -6,7 +6,7 @@ import { PostType } from '../context/AuthContext';
 
 const Post: React.FC<PostType> = ({ id, title, content, brandName, brandLogo, images, createdAt }) => {
   return (
-    <div className="bg-white shadow-md rounded-lg mb-6 p-4 w-96 mx-auto" key={id}>
+    <div className="bg-white shadow-md rounded-lg mb-6 p-4 w-3/4 mx-auto" key={id}>
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <img src={`http://localhost:3001${brandLogo}`} alt={`${brandName} logo`} className="h-10 w-10 rounded-full mr-3" />
