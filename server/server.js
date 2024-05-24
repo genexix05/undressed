@@ -682,7 +682,158 @@ app.get('/api/search', authenticateToken, async (req, res) => {
   }
 });
 
+app.get('/api/products/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
 
+  try {
+    const [rows] = await promisePool.query('SELECT * FROM products WHERE id = ?', [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    const product = rows[0];
+    product.images = product.image_urls.split(','); // Ajusta esto según cómo almacenes las URLs de las imágenes
+
+    res.json(product);
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.get('/api/brand/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [brand] = await promisePool.query('SELECT * FROM brands WHERE id = ?', [id]);
+    if (brand.length === 0) {
+      return res.status(404).json({ error: 'Brand not found' });
+    }
+    res.json(brand[0]);
+  } catch (error) {
+    console.error('Error fetching brand data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/brand-posts/:brandId', authenticateToken, async (req, res) => {
+  const { brandId } = req.params;
+  try {
+    const [posts] = await promisePool.query('SELECT * FROM posts WHERE brand_id = ? ORDER BY created_at DESC', [brandId]);
+    res.json({ posts });
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/profile-view', async (req, res) => {
+  const { brandId } = req.body;
+  try {
+    await promisePool.query('INSERT INTO profile_views (brand_id) VALUES (?)', [brandId]);
+    res.status(200).send('Profile view recorded');
+  } catch (error) {
+    console.error('Error recording profile view:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+app.get('/api/profile-views/:brandId', authenticateToken, async (req, res) => {
+  const { brandId } = req.params;
+  try {
+    const [views] = await promisePool.query(
+      'SELECT COUNT(*) as views FROM profile_views WHERE brand_id = ? AND viewed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)',
+      [brandId]
+    );
+    res.json({ views: views[0].views });
+  } catch (error) {
+    console.error('Error fetching profile views:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Ruta para darle "like" a una publicación
+app.post('/api/posts/:id/like', authenticateToken, async (req, res) => {
+  const postId = req.params.id;
+  const userId = req.user.userId;
+  try {
+    await promisePool.query('INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)', [postId, userId]);
+    res.status(200).send('Liked');
+  } catch (error) {
+    console.error('Error liking post:', error);
+    res.status(500).send('Error liking post');
+  }
+});
+
+app.post('/api/posts/:id/unlike', authenticateToken, async (req, res) => {
+  const postId = req.params.id;
+  const userId = req.user.userId;
+  try {
+    await promisePool.query('DELETE FROM post_likes WHERE post_id = ? AND user_id = ?', [postId, userId]);
+    res.status(200).send('Unliked');
+  } catch (error) {
+    console.error('Error unliking post:', error);
+    res.status(500).send('Error unliking post');
+  }
+});
+
+// Rutas para manejar guardar productos
+app.post('/api/products/:id/save', authenticateToken, async (req, res) => {
+  const productId = req.params.id;
+  const userId = req.user.userId;
+  try {
+    await promisePool.query('INSERT INTO saved_products (product_id, user_id) VALUES (?, ?)', [productId, userId]);
+    res.status(200).send('Saved');
+  } catch (error) {
+    console.error('Error saving product:', error);
+    res.status(500).send('Error saving product');
+  }
+});
+
+app.post('/api/products/:id/unsave', authenticateToken, async (req, res) => {
+  const productId = req.params.id;
+  const userId = req.user.userId;
+  try {
+    await promisePool.query('DELETE FROM saved_products WHERE product_id = ? AND user_id = ?', [productId, userId]);
+    res.status(200).send('Unsaved');
+  } catch (error) {
+    console.error('Error unsaving product:', error);
+    res.status(500).send('Error unsaving product');
+  }
+});
+
+// Ruta para obtener el estado inicial
+app.get('/api/posts/:id/status', authenticateToken, async (req, res) => {
+  const postId = req.params.id;
+  const userId = req.user.userId;
+  try {
+    const [likeRows] = await promisePool.query('SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?', [postId, userId]);
+    const [saveRows] = await promisePool.query('SELECT 1 FROM saved_products WHERE product_id = ? AND user_id = ?', [postId, userId]);
+    res.json({ liked: likeRows.length > 0, saved: saveRows.length > 0 });
+  } catch (error) {
+    console.error('Error fetching status:', error);
+    res.status(500).send('Error fetching status');
+  }
+});
+
+
+// Ruta para guardar un producto
+app.post('/api/products/:productId/save', authenticateToken, async (req, res) => {
+  const { productId } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    await promisePool.query(
+      'INSERT INTO saved_products (product_id, user_id) VALUES (?, ?)',
+      [productId, userId]
+    );
+    res.status(200).json({ message: 'Product saved successfully' });
+  } catch (error) {
+    console.error('Error saving product:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 
 app.listen(port, () => {

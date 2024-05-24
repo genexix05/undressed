@@ -22,8 +22,10 @@ const Header: React.FC = () => {
     return "/assets/images/und.png";
   };
 
-  const handleSearch = () => {
-    navigate(`/search?query=${encodeURIComponent(searchQuery)}`);
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      navigate(`/search?query=${encodeURIComponent(searchQuery)}`);
+    }
   };
 
   return (
@@ -62,7 +64,7 @@ const Header: React.FC = () => {
               {userRole === "brand" && isInBrand ? (
                 <>
                   <Link
-                    to="/control-panel"
+                    to="/control-panel/dashboard"
                     className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-purple-500 text-black hover:bg-gradient-to-tr hover:from-purple-500 hover:to-pink-500 hover:text-white transition focus:outline-none whitespace-nowrap"
                   >
                     <FaCogs className="text-lg" />
@@ -111,11 +113,9 @@ const Header: React.FC = () => {
                   placeholder="Buscar productos/usuarios/marcas..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearch}
                   className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-full focus:outline-none focus:border-gray-400 placeholder-sm"
                 />
-                <button onClick={handleSearch} className="ml-2 px-4 py-2 bg-purple-500 text-white rounded-full">
-                  Buscar
-                </button>
               </div>
             </div>
           </div>

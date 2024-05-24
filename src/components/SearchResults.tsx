@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import useSearch from '../hooks/useSearch';
 import { FaHeart, FaCheck } from 'react-icons/fa';
 
@@ -58,7 +58,7 @@ const SearchResults: React.FC = () => {
           <div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {products.map(product => (
-                <div key={product.id} className="bg-white text-black p-4 rounded-lg relative shadow-md">
+                <Link to={`/product/${product.id}`} key={product.id} className="bg-white text-black p-4 rounded-lg relative shadow-md">
                   {Array.isArray(product.image_urls) && product.image_urls.length > 0 && (
                     <img
                       src={product.image_urls[0]}
@@ -74,7 +74,7 @@ const SearchResults: React.FC = () => {
                     <p className="text-gray-400">Stüssy</p>
                     <p className="text-2xl font-bold">{product.price} €</p>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
