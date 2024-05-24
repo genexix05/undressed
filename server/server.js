@@ -946,6 +946,9 @@ app.get('/api/brand/:brandId', authenticateToken, async (req, res) => {
 });
 
 
+
+
+
 app.post('/api/brand/:brandId/follow', authenticateToken, async (req, res) => {
   const { brandId } = req.params;
   const userId = req.user.userId;

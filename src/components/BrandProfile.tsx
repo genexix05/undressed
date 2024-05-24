@@ -4,30 +4,20 @@ import { useAuth } from '../context/AuthContext';
 
 const BrandProfile: React.FC = () => {
   const { brandId, accessToken } = useAuth();
-  const [brandData, setBrandData] = useState<any>(null);
-  const [followers, setFollowers] = useState<number>(0);
+  const [brandData, setBrandData] = useState<any>(null); // Define el tipo adecuado si conoces la estructura de los datos
 
   useEffect(() => {
-    const fetchBrandData = async () => {
-      if (!brandId) return;
-
-      try {
-        const response = await axios.get(`http://localhost:3001/api/brand/${brandId}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+    if (brandId && accessToken) {
+      axios.get(`http://localhost:3001/api/brands/${brandId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      })
+      .then(response => {
         setBrandData(response.data);
-
-        // Fetch followers
-        const followersResponse = await axios.get(`http://localhost:3001/api/brand/${brandId}/followers`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        setFollowers(followersResponse.data.followers);
-      } catch (error) {
+      })
+      .catch(error => {
         console.error('Error fetching brand data:', error);
-      }
-    };
-
-    fetchBrandData();
+      });
+    }
   }, [brandId, accessToken]);
 
   if (!brandData) {
@@ -40,7 +30,7 @@ const BrandProfile: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3">
           <div className="grid grid-cols-3 text-center order-last md:order-first mt-20 md:mt-0">
             <div>
-              <p className="font-bold text-gray-700 text-xl">{followers}</p>
+              <p className="font-bold text-gray-700 text-xl">{brandData.followers}</p>
               <p className="text-gray-400">Seguidores</p>
             </div>
             <div>

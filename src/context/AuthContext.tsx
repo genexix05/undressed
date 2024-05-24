@@ -20,7 +20,6 @@ interface AuthContextType {
   brandId: string | null;
   posts: PostType[];
   setPosts: React.Dispatch<React.SetStateAction<PostType[]>>;
-  // setProducts: React.Dispatch<React.SetStateAction<ProductType[]>>;
   login: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
 }
@@ -64,8 +63,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       setIsInBrand(response.data.isInBrand);
       if (response.data.isInBrand) {
+        console.log("User is in a brand");
         // Fetch brand ID if the user is in a brand
-        fetchBrandId(token);
+        await fetchBrandId(token);
       }
     } catch (error) {
       console.error('Error checking brand status:', error);
