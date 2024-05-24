@@ -12,19 +12,18 @@ import "../fonts.css";
 
 const Header: React.FC = () => {
   const { isAuthenticated, userRole, isInBrand } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
-
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    navigate(`/search?query=${searchQuery}`);
-  };
 
   const getLogo = () => {
     if (userRole === "brand") {
       return "/assets/images/undn.png";
     }
     return "/assets/images/und.png";
+  };
+
+  const handleSearch = () => {
+    navigate(`/search?query=${encodeURIComponent(searchQuery)}`);
   };
 
   return (
@@ -104,18 +103,21 @@ const Header: React.FC = () => {
           className="hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow md:block md:w-auto md:basis-auto md:order-2 md:col-span-6"
         >
           <div className="flex flex-col gap-y-4 gap-x-0 mt-5 md:flex-row md:justify-center md:items-center md:gap-y-0 md:gap-x-7 md:mt-0">
-            <form className="relative w-full md:w-1/2" onSubmit={handleSearch}>
+            <div className="relative w-full md:w-1/2">
               <div className="relative">
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-500" />
                 <input
                   type="text"
+                  placeholder="Buscar productos/usuarios/marcas..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar productos/usuarios/marcas..."
                   className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-full focus:outline-none focus:border-gray-400 placeholder-sm"
                 />
+                <button onClick={handleSearch} className="ml-2 px-4 py-2 bg-purple-500 text-white rounded-full">
+                  Buscar
+                </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </nav>

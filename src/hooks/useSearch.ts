@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
@@ -26,20 +26,22 @@ const useSearch = (query: string) => {
   const [users, setUsers] = useState<UserType[]>([]);
   const [brands, setBrands] = useState<BrandType[]>([]);
   const [products, setProducts] = useState<ProductType[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSearchResults = async () => {
-      if (!query) return;
-
       setLoading(true);
       setError(null);
 
       try {
         const response = await axios.get('http://localhost:3001/api/search', {
-          params: { query },
-          headers: { Authorization: `Bearer ${accessToken}` },
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          params: {
+            query,
+          },
         });
 
         setUsers(response.data.users);
@@ -52,7 +54,9 @@ const useSearch = (query: string) => {
       }
     };
 
-    fetchSearchResults();
+    if (query) {
+      fetchSearchResults();
+    }
   }, [query, accessToken]);
 
   return { users, brands, products, loading, error };

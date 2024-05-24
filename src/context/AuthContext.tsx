@@ -41,16 +41,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const token = getAccessToken();
     if (token) {
-      console.log("Token before decoding:", token);
       const decodedToken = decodeToken(token);
-      console.log("Decoded token:", decodedToken);
       if (decodedToken) {
         setIsAuthenticated(true);
         setUserRole(String(decodedToken.role));
         setAccessTokenState(token);
-        console.log("Role decoded from token on initial load:", decodedToken.role);
-        
-        // Check if the user is in a brand
         checkIsInBrand(token);
       } else {
         setIsAuthenticated(false);
