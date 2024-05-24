@@ -3,6 +3,7 @@ import useeAuth from '../hooks/useAuth';
 import Modal from '../components/Modal';
 import CreatePostForm from '../components/CreatePostForm';
 import { useAuth } from "../context/AuthContext";
+import PostsList from '../components/PostsList';
 
 const HomePage: React.FC = () => {
   const { auth, refreshToken } = useeAuth();
@@ -28,6 +29,7 @@ const HomePage: React.FC = () => {
       <Modal isOpen={isModalOpen} closeModal={closeModal}>
         <CreatePostForm closeModal={closeModal} />
       </Modal>
+      <PostsList />
     </div>
   );
 };

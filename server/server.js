@@ -17,10 +17,13 @@ const { v4: uuidv4 } = require("uuid");
 const { google } = require("googleapis");
 const OAuth2 = google.auth.OAuth2;
 
+
+
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
 const authenticateToken = require("../src/middleware/authMiddleware");
+
 
 app.use(
   cors({
@@ -517,6 +520,8 @@ app.post("/invite-user-to-brand", authenticateToken, async (req, res) => {
 
 // Api
 
+// Obtener marcas
+
 app.get('/api/check-in-brand', authenticateToken, async (req, res) => {
   try {
     const [rows] = await promisePool.query(
@@ -534,12 +539,38 @@ app.get('/api/check-in-brand', authenticateToken, async (req, res) => {
   }
 });
 
-app.post("/api/create-post", authenticateToken, async (req, res) => {
+// Obtener ID de la marca
+
+app.get('/api/get-brand-id', authenticateToken, async (req, res) => {
+  try {
+    const [rows] = await promisePool.query(
+      'SELECT brand_id FROM brand_users WHERE user_id = ? LIMIT 1',
+      [req.user.userId]
+    );
+    if (rows.length > 0) {
+      res.json({ brandId: rows[0].brand_id });
+    } else {
+      res.json({ brandId: null });
+    }
+  } catch (error) {
+    console.error('Error retrieving brand ID:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// Posts
+
+app.post("/api/create-post", authenticateToken, upload.array('images'), async (req, res) => {
   const { title, content, brandId } = req.body;
-  const files = req.files; // Asumiendo que estás usando algún middleware para manejar archivos
+  const files = req.files;
 
   if (req.user.role !== 'brand') {
     return res.status(403).send("Acceso denegado. Solo los usuarios con el rol 'brand' pueden crear publicaciones.");
+  }
+
+  if (!brandId) {
+    return res.status(400).send("El ID de la marca es requerido.");
   }
 
   try {
@@ -548,14 +579,48 @@ app.post("/api/create-post", authenticateToken, async (req, res) => {
       [brandId, title, content, req.user.userId]
     );
 
-    // Manejo de archivos aquí si es necesario
+    if (files && files.length > 0) {
+      const postId = result.insertId;
+      const fileInsertQueries = files.map(file => {
+        return promisePool.query(
+          "INSERT INTO post_files (post_id, file_path) VALUES (?, ?)",
+          [postId, file.path]
+        );
+      });
+      await Promise.all(fileInsertQueries);
+    }
 
     res.send({ message: "Publicación creada correctamente.", postId: result.insertId });
   } catch (error) {
     console.error("Error al crear la publicación:", error);
-    res.status(500).send("Error al crear la publicación.");
+    res.status(500).send(`Error al crear la publicación: ${error.message}`);
   }
 });
+
+// Obtener publicaciones
+
+app.get("/api/posts", authenticateToken, async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+
+  const offset = (page - 1) * limit;
+
+  try {
+    const [rows] = await promisePool.query(
+      "SELECT p.id, p.title, p.content, p.created_at, u.username, GROUP_CONCAT(f.file_path) AS images FROM posts p LEFT JOIN post_files f ON p.id = f.post_id JOIN users u ON p.created_by = u.id GROUP BY p.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?",
+      [parseInt(limit), parseInt(offset)]
+    );
+
+    res.json({
+      posts: rows,
+      currentPage: page,
+      totalPages: Math.ceil(rows.length / limit),
+    });
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    res.status(500).send("Error fetching posts.");
+  }
+});
+
 
 
 app.listen(port, () => {

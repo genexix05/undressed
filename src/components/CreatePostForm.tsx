@@ -28,7 +28,7 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
       const formData = new FormData();
       formData.append('title', title);
       formData.append('content', content);
-      formData.append('brandId', brandId); // Utiliza el ID de la marca desde el contexto
+      formData.append('brandId', brandId); // Asegúrate de pasar brandId correctamente
       for (let i = 0; i < images.length; i++) {
         formData.append('images', images[i]);
       }
@@ -41,6 +41,8 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
           navigate(`/brand/${brandId}/posts`);
         }, 2000); // Espera 2 segundos antes de cerrar el modal y redirigir
       }
+    } else {
+      console.error('Brand ID is missing');
     }
   };
 
