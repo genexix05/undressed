@@ -7,7 +7,7 @@ const PostsList: React.FC = () => {
   const { posts, loading, error, hasMore, setPage } = useFetchPosts();
 
   const observer = useRef<IntersectionObserver | null>(null);
-  const lastPostElementRef = useCallback((node) => {
+  const lastPostElementRef = useCallback((node: HTMLElement | null) => {  // Especificar el tipo de node
     if (loading) return;
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver((entries) => {
