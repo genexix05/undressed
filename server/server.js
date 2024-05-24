@@ -778,6 +778,20 @@ app.post('/api/posts/:id/unlike', authenticateToken, async (req, res) => {
   }
 });
 
+// Ruta para obtener el estado inicial
+app.get('/api/posts/:id/status', authenticateToken, async (req, res) => {
+  const postId = req.params.id;
+  const userId = req.user.userId;
+  try {
+    const [likeRows] = await promisePool.query('SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?', [postId, userId]);
+    const [saveRows] = await promisePool.query('SELECT 1 FROM saved_products WHERE product_id = ? AND user_id = ?', [postId, userId]);
+    res.json({ liked: likeRows.length > 0, saved: saveRows.length > 0 });
+  } catch (error) {
+    console.error('Error fetching status:', error);
+    res.status(500).send('Error fetching status');
+  }
+});
+
 // Rutas para manejar guardar productos
 app.post('/api/products/:id/save', authenticateToken, async (req, res) => {
   const productId = req.params.id;
@@ -803,37 +817,186 @@ app.post('/api/products/:id/unsave', authenticateToken, async (req, res) => {
   }
 });
 
-// Ruta para obtener el estado inicial
-app.get('/api/posts/:id/status', authenticateToken, async (req, res) => {
-  const postId = req.params.id;
+// Ruta para obtener el estado inicial de guardado
+app.get('/api/products/:id/status', authenticateToken, async (req, res) => {
+  const productId = req.params.id;
   const userId = req.user.userId;
   try {
-    const [likeRows] = await promisePool.query('SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?', [postId, userId]);
-    const [saveRows] = await promisePool.query('SELECT 1 FROM saved_products WHERE product_id = ? AND user_id = ?', [postId, userId]);
-    res.json({ liked: likeRows.length > 0, saved: saveRows.length > 0 });
+    const [saveRows] = await promisePool.query('SELECT 1 FROM saved_products WHERE product_id = ? AND user_id = ?', [productId, userId]);
+    res.json({ saved: saveRows.length > 0 });
   } catch (error) {
     console.error('Error fetching status:', error);
     res.status(500).send('Error fetching status');
   }
 });
 
-
-// Ruta para guardar un producto
-app.post('/api/products/:productId/save', authenticateToken, async (req, res) => {
-  const { productId } = req.params;
-  const userId = req.user.userId;
+app.get('/api/brand/:brandId/stats', authenticateToken, async (req, res) => {
+  const { brandId } = req.params;
 
   try {
-    await promisePool.query(
-      'INSERT INTO saved_products (product_id, user_id) VALUES (?, ?)',
-      [productId, userId]
+    // Obtén el conteo de likes
+    const [likesResult] = await promisePool.query(
+      'SELECT COUNT(*) as likes FROM post_likes WHERE post_id IN (SELECT id FROM posts WHERE brand_id = ?)',
+      [brandId]
     );
-    res.status(200).json({ message: 'Product saved successfully' });
+    const likes = likesResult[0].likes;
+
+    // Obtén el conteo de productos guardados
+    const [savedItemsResult] = await promisePool.query(
+      'SELECT COUNT(*) as savedItems FROM saved_products WHERE product_id IN (SELECT id FROM products WHERE id IN (SELECT product_id FROM post_files WHERE post_id IN (SELECT id FROM posts WHERE brand_id = ?)))',
+      [brandId]
+    );
+    const savedItems = savedItemsResult[0].savedItems;
+
+    // Obtén las visitas de los últimos 7 días
+    const [last7DaysVisitsResult] = await promisePool.query(
+      `SELECT DATE(viewed_at) as date, COUNT(*) as count 
+       FROM profile_views 
+       WHERE brand_id = ? AND viewed_at >= CURDATE() - INTERVAL 7 DAY 
+       GROUP BY DATE(viewed_at) 
+       ORDER BY date`,
+      [brandId]
+    );
+    const last7DaysVisits = last7DaysVisitsResult;
+
+    // Obtén las visitas de los últimos 30 días
+    const [last30DaysVisitsResult] = await promisePool.query(
+      `SELECT DATE(viewed_at) as date, COUNT(*) as count 
+       FROM profile_views 
+       WHERE brand_id = ? AND viewed_at >= CURDATE() - INTERVAL 30 DAY 
+       GROUP BY DATE(viewed_at) 
+       ORDER BY date`,
+      [brandId]
+    );
+    const last30DaysVisits = last30DaysVisitsResult;
+
+    // Obtén el total de visitas
+    const [totalVisitsResult] = await promisePool.query(
+      `SELECT COUNT(*) as totalVisits 
+       FROM profile_views 
+       WHERE brand_id = ?`,
+      [brandId]
+    );
+    const totalVisits = totalVisitsResult[0].totalVisits;
+
+    res.json({ likes, savedItems, last7DaysVisits, last30DaysVisits, totalVisits });
   } catch (error) {
-    console.error('Error saving product:', error);
+    console.error('Error fetching stats:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+app.get('/api/users', authenticateToken, async (req, res) => {
+  const { brandId } = req.query;
+
+  if (!brandId) {
+    return res.status(400).json({ error: 'Brand ID is required' });
+  }
+
+  try {
+    const [users] = await promisePool.query(
+      `SELECT u.id, u.username, u.email, u.profile_pic, bu.role, bu.created_at 
+       FROM users u
+       JOIN brand_users bu ON u.id = bu.user_id
+       WHERE bu.brand_id = ?`,
+      [brandId]
+    );
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/brand/:brandId', authenticateToken, async (req, res) => {
+  const { brandId } = req.params;
+
+  try {
+    // Consulta para obtener información de la marca
+    const [brand] = await promisePool.query(
+      'SELECT id, name, description, logo FROM brands WHERE id = ?',
+      [brandId]
+    );
+
+    if (brand.length === 0) {
+      return res.status(404).json({ error: 'Brand not found' });
+    }
+
+    // Consulta para obtener el número de publicaciones
+    const [postsCount] = await promisePool.query(
+      'SELECT COUNT(*) as count FROM posts WHERE brand_id = ?',
+      [brandId]
+    );
+
+    // Consulta para obtener el número de likes
+    const [likesCount] = await promisePool.query(
+      'SELECT COUNT(*) as count FROM post_likes WHERE post_id IN (SELECT id FROM posts WHERE brand_id = ?)',
+      [brandId]
+    );
+
+    res.json({
+      ...brand[0],
+      postsCount: postsCount[0].count,
+      likesCount: likesCount[0].count
+    });
+  } catch (error) {
+    console.error('Error fetching brand data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.post('/api/brand/:brandId/follow', authenticateToken, async (req, res) => {
+  const { brandId } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const [existingFollow] = await promisePool.query('SELECT * FROM brand_followers WHERE brand_id = ? AND user_id = ?', [brandId, userId]);
+    if (existingFollow.length > 0) {
+      return res.status(400).json({ error: 'You are already following this brand.' });
+    }
+
+    await promisePool.query('INSERT INTO brand_followers (brand_id, user_id) VALUES (?, ?)', [brandId, userId]);
+    res.status(200).json({ message: 'Brand followed successfully.' });
+  } catch (error) {
+    console.error('Error following brand:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/brand/:brandId/unfollow', authenticateToken, async (req, res) => {
+  const { brandId } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const [existingFollow] = await promisePool.query('SELECT * FROM brand_followers WHERE brand_id = ? AND user_id = ?', [brandId, userId]);
+    if (existingFollow.length === 0) {
+      return res.status(400).json({ error: 'You are not following this brand.' });
+    }
+
+    await promisePool.query('DELETE FROM brand_followers WHERE brand_id = ? AND user_id = ?', [brandId, userId]);
+    res.status(200).json({ message: 'Brand unfollowed successfully.' });
+  } catch (error) {
+    console.error('Error unfollowing brand:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/brand/:brandId/is-following', authenticateToken, async (req, res) => {
+  const { brandId } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const [result] = await promisePool.query('SELECT * FROM brand_followers WHERE brand_id = ? AND user_id = ?', [brandId, userId]);
+    const isFollowing = result.length > 0;
+    res.json({ isFollowing });
+  } catch (error) {
+    console.error('Error checking if following:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 
 
 app.listen(port, () => {

@@ -24,17 +24,19 @@ const SearchResults: React.FC = () => {
         {brands.length > 0 && (
           <div className="mb-8">
             {brands.map(brand => (
-              <div key={brand.id} className="bg-white text-black p-4 rounded-lg flex items-center mb-4 shadow-md w-full">
-                <div className="flex items-center justify-end text-lg font-bold flex-1 mr-4">
-                  <FaCheck className="text-yellow-500 mr-2" />
-                  <span className="text-right">{brand.name}</span>
+              <Link to={`/brand/${brand.id}`} key={brand.id} className="no-underline">
+                <div className="bg-white text-black p-4 rounded-lg flex items-center mb-4 shadow-md w-full">
+                  <div className="flex items-center justify-end text-lg font-bold flex-1 mr-4">
+                    <FaCheck className="text-yellow-500 mr-2" />
+                    <span className="text-right">{brand.name}</span>
+                  </div>
+                  <img
+                    src={brand.logo}
+                    alt={brand.name}
+                    className="w-10 h-10 rounded-full"
+                  />
                 </div>
-                <img
-                  src={brand.logo}
-                  alt={brand.name}
-                  className="w-10 h-10 rounded-full"
-                />
-              </div>
+              </Link>
             ))}
           </div>
         )}

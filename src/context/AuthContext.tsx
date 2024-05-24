@@ -20,6 +20,7 @@ interface AuthContextType {
   brandId: string | null;
   posts: PostType[];
   setPosts: React.Dispatch<React.SetStateAction<PostType[]>>;
+  // setProducts: React.Dispatch<React.SetStateAction<ProductType[]>>;
   login: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
 }

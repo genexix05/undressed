@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './Dashboard';
-import Users from './Users';
+import UserList from './UserList';
 import Projects from './Projects';
 import Account from './Account';
 
@@ -144,7 +144,7 @@ const ControlPanel: React.FC = () => {
         <div className="px-4 sm:px-6 md:px-8"> 
           <Routes>
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="users" element={<Users />} />
+            <Route path="users" element={<UserList />} />
             <Route path="projects" element={<Projects />} />
             <Route path="account" element={<Account />} />
           </Routes>
