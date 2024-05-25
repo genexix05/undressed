@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import Modal from 'react-modal';
+import { FaHeart, FaBookmark } from 'react-icons/fa';
 
 interface BrandInfo {
   id: number;
@@ -20,6 +21,24 @@ interface Post {
   created_at: string;
   images: string[];
 }
+
+// Estilos para el modal
+const customStyles = {
+  content: {
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+    width: '80%',
+    maxHeight: '90vh',
+    overflow: 'auto',
+  },
+  overlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+  },
+};
 
 const BrandProfile: React.FC = () => {
   const { brandId, accessToken } = useAuth();
@@ -88,6 +107,8 @@ const BrandProfile: React.FC = () => {
             headers: { Authorization: `Bearer ${accessToken}` },
           }
         );
+        setIsFollowing(false);
+        setBrandInfo(prevBrandInfo => prevBrandInfo ? { ...prevBrandInfo, followers: prevBrandInfo.followers - 1 } : null);
       } else {
         await axios.post(
           'http://localhost:3001/api/follow',
@@ -96,8 +117,9 @@ const BrandProfile: React.FC = () => {
             headers: { Authorization: `Bearer ${accessToken}` },
           }
         );
+        setIsFollowing(true);
+        setBrandInfo(prevBrandInfo => prevBrandInfo ? { ...prevBrandInfo, followers: prevBrandInfo.followers + 1 } : null);
       }
-      setIsFollowing(!isFollowing);
     } catch (err) {
       console.error('Error toggling follow status:', err);
       setError('An error occurred while toggling follow status');
@@ -152,11 +174,11 @@ const BrandProfile: React.FC = () => {
           <div className="space-x-8 flex justify-between mt-32 md:mt-0 md:justify-center">
             <button
               onClick={toggleFollow}
-              className={`text-white py-2 px-4 uppercase rounded ${isFollowing ? 'bg-red-400 hover:bg-red-500' : 'bg-blue-400 hover:bg-blue-500'} shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5`}
+              className={`text-white py-2 px-4 uppercase rounded-full ${isFollowing ? 'bg-purple-500 hover:bg-purple-600' : 'bg-gray-400 hover:bg-gray-600'} shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5`}
             >
               {isFollowing ? 'Unfollow' : 'Follow'}
             </button>
-            <button className="text-white py-2 px-4 uppercase rounded bg-gray-700 hover:bg-gray-800 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5">
+            <button className="text-white py-2 px-4 uppercase rounded-full bg-gray-700 hover:bg-gray-800 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5">
               Compartir
             </button>
           </div>
@@ -179,10 +201,27 @@ const BrandProfile: React.FC = () => {
         </div>
       </div>
       {selectedPost && (
-        <Modal isOpen={!!selectedPost} onRequestClose={closeModal} contentLabel="Post Modal" className="modal" overlayClassName="overlay">
+        <Modal isOpen={!!selectedPost} onRequestClose={closeModal} contentLabel="Post Modal" style={customStyles}>
           <div className="p-4">
-            <img src={`http://localhost:3001/uploads/${selectedPost.images[0]}`} alt={`Post ${selectedPost.id}`} className="w-full h-64 object-cover rounded-lg shadow-md mb-4" />
-            <p className="text-gray-700">{selectedPost.content}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="relative w-full h-0 pb-9/16 overflow-hidden">
+                <img src={`http://localhost:3001/uploads/${selectedPost.images[0]}`} alt={`Post ${selectedPost.id}`} className="absolute top-0 left-0 w-full h-full object-contain" />
+              </div>
+              <div className="flex flex-col justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-700">{selectedPost.title}</h2>
+                  <p className="text-gray-700 mt-2">{selectedPost.content}</p>
+                </div>
+                <div className="mt-4 flex space-x-4">
+                  <button className="text-gray-700 hover:text-red-500">
+                    <FaHeart size={24} />
+                  </button>
+                  <button className="text-gray-700 hover:text-blue-500">
+                    <FaBookmark size={24} />
+                  </button>
+                </div>
+              </div>
+            </div>
             <button onClick={closeModal} className="mt-4 text-white py-2 px-4 uppercase rounded bg-red-500 hover:bg-red-600 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5">
               Close
             </button>

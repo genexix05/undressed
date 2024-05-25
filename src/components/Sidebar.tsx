@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FaList, FaBell, FaBookmark } from 'react-icons/fa';
 
 const Sidebar: React.FC = () => {
@@ -7,15 +8,15 @@ const Sidebar: React.FC = () => {
       <ul className="space-y-4">
         <li className="flex items-center space-x-2">
           <FaList size={20} />
-          <span>Posts</span>
+          <Link to="/home">Publicaciones</Link>
         </li>
         <li className="flex items-center space-x-2">
           <FaBell size={20} />
-          <span>Notificaciones</span>
+          <Link to="/home/notifications">Notificaciones</Link>
         </li>
         <li className="flex items-center space-x-2">
           <FaBookmark size={20} />
-          <span>Guardados</span>
+          <Link to="/home/saved">Guardados</Link>
         </li>
       </ul>
     </div>

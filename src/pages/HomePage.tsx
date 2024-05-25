@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { Route, Routes } from 'react-router-dom';
 import useeAuth from '../hooks/useAuth';
 import Modal from '../components/Modal';
 import CreatePostForm from '../components/CreatePostForm';
 import { useAuth } from "../context/AuthContext";
 import PostsList from '../components/PostsList';
-import Sidebar from '../components/Sidebar'; // Importa el Sidebar
+import Sidebar from '../components/Sidebar';
+import Notifications from '../components/Notifications'; // Importa el componente de Notificaciones
+import Saved from '../components/Saved'; // Importa el componente de Guardados
 
 const HomePage: React.FC = () => {
   const { auth, refreshToken } = useeAuth();
@@ -34,12 +37,24 @@ const HomePage: React.FC = () => {
         <Modal isOpen={isModalOpen} closeModal={closeModal}>
           <CreatePostForm closeModal={closeModal} />
         </Modal>
-        <PostsList />
+        <Routes>
+          <Route path="/*" element={<MainContent />} />
+        </Routes>
       </div>
       <div className=" w-1/5">
         {/* Puedes agregar cualquier otro contenido aquí */}
       </div>
     </div>
+  );
+};
+
+const MainContent: React.FC = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<PostsList />} />
+      <Route path="notifications" element={<Notifications />} />
+      <Route path="saved" element={<Saved />} />
+    </Routes>
   );
 };
 

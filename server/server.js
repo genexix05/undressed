@@ -496,29 +496,6 @@ app.post("/create-brand", authenticateToken, upload.single('logo'), async (req, 
   }
 });
 
-
-// Invitar usuarios a marcas
-
-app.post("/invite-user-to-brand", authenticateToken, async (req, res) => {
-  const { brandId, userId, role } = req.body;
-  const invitationToken = uuidv4();
-
-  try {
-    const [result] = await promisePool.query(
-      "INSERT INTO brand_users (brand_id, user_id, role, invitation_token) VALUES (?, ?, ?, ?)",
-      [brandId, userId, role, invitationToken]
-    );
-
-    res.send({
-      message: "Usuario invitado correctamente",
-      invitationToken: invitationToken
-    });
-  } catch (error) {
-    console.error("Error al invitar usuario a la marca:", error);
-    res.status(500).send({ error: "Error en la invitación: " + error.message });
-  }
-});
-
 // Api
 
 // Obtener marcas
@@ -1008,6 +985,100 @@ app.post('/api/unfollow', authenticateToken, async (req, res) => {
   }
 });
 
+
+// Invite by username
+app.post('/api/invite-username', authenticateToken, async (req, res) => {
+  const { username } = req.body;
+  const { brandId } = req.body;
+
+  try {
+    const [user] = await promisePool.query('SELECT id FROM users WHERE username = ?', [username]);
+    if (user.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const userId = user[0].id;
+
+    await promisePool.query('INSERT INTO notifications (user_id, message, brand_id) VALUES (?, ?, ?)', [userId, `You have been invited to join the brand ${brandId}`, brandId]);
+    res.json({ message: 'Invitation sent' });
+  } catch (error) {
+    console.error('Error inviting user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Invite by email
+app.post('/api/invite-email', authenticateToken, async (req, res) => {
+  const { email } = req.body;
+  const { brandId } = req.body;
+
+  try {
+    const inviteToken = generateInviteToken();
+    await sendEmail(email, inviteToken);
+    await promisePool.query('INSERT INTO notifications (user_id, message, brand_id) VALUES ((SELECT id FROM users WHERE email = ?), ?, ?)', [email, `You have been invited to join the brand ${brandId}`, brandId]);
+    res.json({ message: 'Invitation email sent' });
+  } catch (error) {
+    console.error('Error sending invitation email:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Generate invitation link
+app.post('/api/generate-invite-link', authenticateToken, async (req, res) => {
+  const { brandId } = req.body;
+
+  try {
+    const inviteToken = generateInviteToken();
+    const inviteLink = `http://localhost:3000/invite/${inviteToken}`;
+
+    await promisePool.query('INSERT INTO notifications (user_id, message, brand_id) VALUES (?, ?, ?)', [req.user.id, `Invitation link generated for brand ${brandId}: ${inviteLink}`, brandId]);
+    res.json({ inviteLink });
+  } catch (error) {
+    console.error('Error generating invitation link:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Accept invitation
+app.post('/api/accept-invite', authenticateToken, async (req, res) => {
+  const { token } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    const [invite] = await promisePool.query('SELECT brand_id FROM notifications WHERE message LIKE ?', [`%${token}%`]);
+    if (invite.length === 0) {
+      return res.status(404).json({ error: 'Invalid invitation token' });
+    }
+    const brandId = invite[0].brand_id;
+
+    await promisePool.query('INSERT INTO brand_users (brand_id, user_id) VALUES (?, ?)', [brandId, userId]);
+    await promisePool.query('UPDATE notifications SET read = true WHERE message LIKE ?', [`%${token}%`]);
+    res.json({ message: 'Invitation accepted' });
+  } catch (error) {
+    console.error('Error accepting invitation:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Obtener notificaciones del usuario autenticado
+app.get('/api/notifications', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID not found in request' });
+  }
+
+  try {
+    const [notifications] = await promisePool.query(
+      'SELECT id, message, brand_id, created_at, readed FROM notifications WHERE user_id = ?',
+      [userId]
+    );
+
+    res.json(notifications);
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 
 

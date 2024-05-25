@@ -2,8 +2,9 @@ import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './Dashboard';
 import UserList from './UserList';
-import Projects from './Projects';
-import Account from './Account';
+import Publications from './Publications';  // Cambiado de Projects a Publications
+import Marca from './Marca';  // Cambiado de Account a Marca
+import Invitations from './Invitations';  // Nuevo componente para Invitations
 
 const ControlPanel: React.FC = () => {
   return (
@@ -84,7 +85,29 @@ const ControlPanel: React.FC = () => {
             <li>
               <Link
                 className="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-neutral-700 rounded-lg hover:bg-gray-100"
-                to="/control-panel/projects"
+                to="/control-panel/invitations"  // Nuevo link para Invitations
+              >
+                <svg
+                  className="flex-shrink-0 size-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width={24}
+                  height={24}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M22 12l-4-4v3H3v2h15v3l4-4z" />
+                </svg>
+                Invitations
+              </Link>
+            </li>
+            <li>
+              <Link
+                className="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-neutral-700 rounded-lg hover:bg-gray-100"
+                to="/control-panel/publications"  // Cambiado de Projects a Publications
               >
                 <svg
                   className="flex-shrink-0 size-4"
@@ -101,13 +124,13 @@ const ControlPanel: React.FC = () => {
                   <rect width={20} height={14} x={2} y={7} rx={2} ry={2} />
                   <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
                 </svg>
-                Projects
+                Publications
               </Link>
             </li>
             <li>
               <Link
                 className="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-neutral-700 rounded-lg hover:bg-gray-100"
-                to="/control-panel/account"
+                to="/control-panel/marca"  // Cambiado de Account a Marca
               >
                 <svg
                   className="flex-shrink-0 size-4"
@@ -133,7 +156,7 @@ const ControlPanel: React.FC = () => {
                   <path d="m14.3 16.6 1-.4" />
                   <path d="m20.7 13.8 1-.4" />
                 </svg>
-                Account
+                Marca
               </Link>
             </li>
           </ul>
@@ -145,8 +168,9 @@ const ControlPanel: React.FC = () => {
           <Routes>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="users" element={<UserList />} />
-            <Route path="projects" element={<Projects />} />
-            <Route path="account" element={<Account />} />
+            <Route path="invitations" element={<Invitations />} />  {/* Nueva ruta para Invitations */}
+            <Route path="publications" element={<Publications />} />  {/* Cambiado de Projects a Publications */}
+            <Route path="marca" element={<Marca />} />  {/* Cambiado de Account a Marca */}
           </Routes>
         </div>
       </div>
