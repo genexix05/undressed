@@ -908,98 +908,39 @@ app.get('/api/users', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/api/brand/:brandId', authenticateToken, async (req, res) => {
-  const { brandId } = req.params;
+app.get('/api/brand/:brandId/', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+
+  console.log('Fetching brand info for brand ID:', id); // Agregado para verificar la ID
 
   try {
-    // Consulta para obtener información de la marca
-    const [brand] = await promisePool.query(
-      'SELECT id, name, description, logo FROM brands WHERE id = ?',
-      [brandId]
-    );
+    const [brand] = await promisePool.query('SELECT id, name, description, logo FROM brands WHERE id = ?', [id]);
+
+    console.log('Brand query result:', brand); // Agregado para verificar el resultado de la consulta
 
     if (brand.length === 0) {
       return res.status(404).json({ error: 'Brand not found' });
     }
 
-    // Consulta para obtener el número de publicaciones
-    const [postsCount] = await promisePool.query(
-      'SELECT COUNT(*) as count FROM posts WHERE brand_id = ?',
-      [brandId]
-    );
+    const [followers] = await promisePool.query('SELECT COUNT(*) as count FROM brand_followers WHERE brand_id = ?', [id]);
+    const [posts] = await promisePool.query('SELECT COUNT(*) as count FROM posts WHERE brand_id = ?', [id]);
+    const [likes] = await promisePool.query('SELECT COUNT(*) as count FROM post_likes pl JOIN posts p ON pl.post_id = p.id WHERE p.brand_id = ?', [id]);
 
-    // Consulta para obtener el número de likes
-    const [likesCount] = await promisePool.query(
-      'SELECT COUNT(*) as count FROM post_likes WHERE post_id IN (SELECT id FROM posts WHERE brand_id = ?)',
-      [brandId]
-    );
+    console.log('Followers:', followers[0].count);
+    console.log('Posts:', posts[0].count);
+    console.log('Likes:', likes[0].count);
 
     res.json({
       ...brand[0],
-      postsCount: postsCount[0].count,
-      likesCount: likesCount[0].count
+      followers: followers[0].count,
+      posts: posts[0].count,
+      likes: likes[0].count,
     });
   } catch (error) {
-    console.error('Error fetching brand data:', error);
+    console.error('Error fetching brand info:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-
-
-
-
-app.post('/api/brand/:brandId/follow', authenticateToken, async (req, res) => {
-  const { brandId } = req.params;
-  const userId = req.user.userId;
-
-  try {
-    const [existingFollow] = await promisePool.query('SELECT * FROM brand_followers WHERE brand_id = ? AND user_id = ?', [brandId, userId]);
-    if (existingFollow.length > 0) {
-      return res.status(400).json({ error: 'You are already following this brand.' });
-    }
-
-    await promisePool.query('INSERT INTO brand_followers (brand_id, user_id) VALUES (?, ?)', [brandId, userId]);
-    res.status(200).json({ message: 'Brand followed successfully.' });
-  } catch (error) {
-    console.error('Error following brand:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.post('/api/brand/:brandId/unfollow', authenticateToken, async (req, res) => {
-  const { brandId } = req.params;
-  const userId = req.user.userId;
-
-  try {
-    const [existingFollow] = await promisePool.query('SELECT * FROM brand_followers WHERE brand_id = ? AND user_id = ?', [brandId, userId]);
-    if (existingFollow.length === 0) {
-      return res.status(400).json({ error: 'You are not following this brand.' });
-    }
-
-    await promisePool.query('DELETE FROM brand_followers WHERE brand_id = ? AND user_id = ?', [brandId, userId]);
-    res.status(200).json({ message: 'Brand unfollowed successfully.' });
-  } catch (error) {
-    console.error('Error unfollowing brand:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.get('/api/brand/:brandId/is-following', authenticateToken, async (req, res) => {
-  const { brandId } = req.params;
-  const userId = req.user.userId;
-
-  try {
-    const [result] = await promisePool.query('SELECT * FROM brand_followers WHERE brand_id = ? AND user_id = ?', [brandId, userId]);
-    const isFollowing = result.length > 0;
-    res.json({ isFollowing });
-  } catch (error) {
-    console.error('Error checking if following:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-
 
 
 app.listen(port, () => {
