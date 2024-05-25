@@ -923,18 +923,10 @@ app.get('/api/brandinfo/:brandId', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Brand not found' });
     }
 
-    // Logs for debugging
-    console.log('Brand data:', brandResult);
-
     // Queries to fetch followers, posts, and likes counts
     const [followersResult] = await promisePool.query('SELECT COUNT(*) as count FROM brand_followers WHERE brand_id = ?', [brandId]);
     const [postsResult] = await promisePool.query('SELECT COUNT(*) as count FROM posts WHERE brand_id = ?', [brandId]);
     const [likesResult] = await promisePool.query('SELECT COUNT(*) as count FROM post_likes pl JOIN posts p ON pl.post_id = p.id WHERE p.brand_id = ?', [brandId]);
-
-    // Additional logs for debugging
-    console.log('Followers:', followersResult[0].count);
-    console.log('Posts:', postsResult[0].count);
-    console.log('Likes:', likesResult[0].count);
 
     // Constructing the response object
     const brandInfo = {
@@ -952,6 +944,72 @@ app.get('/api/brandinfo/:brandId', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// Endpoint para obtener los posts de una marca
+app.get('/api/posts/:brandId', authenticateToken, async (req, res) => {
+  const { brandId } = req.params;
+
+  try {
+    const [posts] = await promisePool.query('SELECT id, title, content, created_at FROM posts WHERE brand_id = ?', [brandId]);
+
+    const postsWithImages = await Promise.all(posts.map(async post => {
+      const [images] = await promisePool.query('SELECT file_path FROM post_files WHERE post_id = ?', [post.id]);
+      return {
+        ...post,
+        images: images.map(image => `${path.basename(image.file_path)}`),
+      };
+    }));
+
+    res.json(postsWithImages);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/check-following/:brandId', authenticateToken, async (req, res) => {
+  const { brandId } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const [rows] = await promisePool.query('SELECT COUNT(*) as count FROM brand_followers WHERE brand_id = ? AND user_id = ?', [brandId, userId]);
+    res.json({ isFollowing: rows[0].count > 0 });
+  } catch (error) {
+    console.error('Error checking follow status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/follow', authenticateToken, async (req, res) => {
+  const { brandId } = req.body;
+  const userId = req.user.userId;
+
+  console.log('ID del usuario que sigue:', userId);
+
+  try {
+    await promisePool.query('INSERT INTO brand_followers (brand_id, user_id) VALUES (?, ?)', [brandId, userId]);
+    res.status(200).json({ message: 'Brand followed successfully' });
+  } catch (error) {
+    console.error('Error following brand:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/unfollow', authenticateToken, async (req, res) => {
+  const { brandId } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    await promisePool.query('DELETE FROM brand_followers WHERE brand_id = ? AND user_id = ?', [brandId, userId]);
+    res.status(200).json({ message: 'Brand unfollowed successfully' });
+  } catch (error) {
+    console.error('Error unfollowing brand:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
 
 app.listen(port, () => {
   console.log(`Node server listening at http://localhost:${port}`);

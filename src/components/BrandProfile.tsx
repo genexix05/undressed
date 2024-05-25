@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import Modal from 'react-modal';
 
 interface BrandInfo {
@@ -15,8 +15,10 @@ interface BrandInfo {
 
 interface Post {
   id: number;
-  image: string;
+  title: string;
   content: string;
+  created_at: string;
+  images: string[];
 }
 
 const BrandProfile: React.FC = () => {
@@ -24,6 +26,7 @@ const BrandProfile: React.FC = () => {
   const [brandInfo, setBrandInfo] = useState<BrandInfo | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -39,15 +42,8 @@ const BrandProfile: React.FC = () => {
         });
         setBrandInfo(response.data);
       } catch (err) {
-        if (err instanceof AxiosError) {
-          if (err.response && err.response.status === 404) {
-            setError('Brand not found');
-          } else {
-            setError('An error occurred while fetching brand information');
-          }
-        } else {
-          setError('An unexpected error occurred');
-        }
+        console.error('Error fetching brand info:', err);
+        setError('An error occurred while fetching brand information');
       }
     };
 
@@ -58,15 +54,55 @@ const BrandProfile: React.FC = () => {
         });
         setPosts(response.data);
       } catch (err) {
+        console.error('Error fetching posts:', err);
         setError('An error occurred while fetching posts');
+      }
+    };
+
+    const checkIfFollowing = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3001/api/check-following/${brandId}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        setIsFollowing(response.data.isFollowing);
+      } catch (err) {
+        console.error('Error checking follow status:', err);
+        setError('An error occurred while checking follow status');
       }
     };
 
     if (brandId && accessToken) {
       fetchBrandInfo();
       fetchPosts();
+      checkIfFollowing();
     }
   }, [brandId, accessToken]);
+
+  const toggleFollow = async () => {
+    try {
+      if (isFollowing) {
+        await axios.post(
+          'http://localhost:3001/api/unfollow',
+          { brandId },
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+      } else {
+        await axios.post(
+          'http://localhost:3001/api/follow',
+          { brandId },
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+      }
+      setIsFollowing(!isFollowing);
+    } catch (err) {
+      console.error('Error toggling follow status:', err);
+      setError('An error occurred while toggling follow status');
+    }
+  };
 
   const openModal = (post: Post) => {
     setSelectedPost(post);
@@ -114,8 +150,11 @@ const BrandProfile: React.FC = () => {
             </div>
           </div>
           <div className="space-x-8 flex justify-between mt-32 md:mt-0 md:justify-center">
-            <button className="text-white py-2 px-4 uppercase rounded bg-blue-400 hover:bg-blue-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5">
-              Follow
+            <button
+              onClick={toggleFollow}
+              className={`text-white py-2 px-4 uppercase rounded ${isFollowing ? 'bg-red-400 hover:bg-red-500' : 'bg-blue-400 hover:bg-blue-500'} shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5`}
+            >
+              {isFollowing ? 'Unfollow' : 'Follow'}
             </button>
             <button className="text-white py-2 px-4 uppercase rounded bg-gray-700 hover:bg-gray-800 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5">
               Compartir
@@ -126,18 +165,23 @@ const BrandProfile: React.FC = () => {
           <h1 className="text-4xl font-medium text-gray-700">{brandInfo.name}</h1>
           <p className="text-gray-500 mt-4">{brandInfo.description}</p>
         </div>
-      </div>
-      <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {posts.map(post => (
-          <div key={post.id} className="cursor-pointer" onClick={() => openModal(post)}>
-            <img src={`http://localhost:3001/uploads/${post.image}`} alt={`Post ${post.id}`} className="w-full h-64 object-cover rounded-lg shadow-md" />
-          </div>
-        ))}
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pr-10 pl-10">
+          {posts.map(post => (
+            <div key={post.id} className="relative cursor-pointer" onClick={() => openModal(post)}>
+              <div className="relative w-full h-64 overflow-hidden">
+                <img src={`http://localhost:3001/uploads/${post.images[0]}`} alt={`Post ${post.id}`} className="w-full h-full object-contain" />
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                  <p className="text-white text-xl font-semibold">{post.title}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
       {selectedPost && (
         <Modal isOpen={!!selectedPost} onRequestClose={closeModal} contentLabel="Post Modal" className="modal" overlayClassName="overlay">
           <div className="p-4">
-            <img src={`http://localhost:3001/uploads/${selectedPost.image}`} alt={`Post ${selectedPost.id}`} className="w-full h-64 object-cover rounded-lg shadow-md mb-4" />
+            <img src={`http://localhost:3001/uploads/${selectedPost.images[0]}`} alt={`Post ${selectedPost.id}`} className="w-full h-64 object-cover rounded-lg shadow-md mb-4" />
             <p className="text-gray-700">{selectedPost.content}</p>
             <button onClick={closeModal} className="mt-4 text-white py-2 px-4 uppercase rounded bg-red-500 hover:bg-red-600 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5">
               Close
