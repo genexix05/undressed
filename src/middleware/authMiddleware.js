@@ -12,13 +12,14 @@ const authenticateToken = async (req, res, next) => {
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
     if (err) {
-      console.log("Invalid token");
+      console.log("Invalid token:", err.message);
       return res.sendStatus(403); // El token no es válido o ha expirado
     }
 
     try {
       const [rows] = await promisePool.query("SELECT * FROM users WHERE id = ?", [user.userId]);
       if (rows.length === 0) {
+        console.log("User not found in database");
         return res.status(404).json({ error: "Usuario no encontrado." });
       }
     } catch (queryError) {

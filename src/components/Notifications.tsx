@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import axios, { AxiosError } from 'axios';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
 
 interface Notification {
   id: number;
   message: string;
   brand_id: number;
   created_at: string;
-  read: 'yes' | 'no';
+  readed: 'yes' | 'no';
 }
 
 const Notifications: React.FC = () => {
@@ -31,37 +31,45 @@ const Notifications: React.FC = () => {
     fetchNotifications();
   }, [accessToken]);
 
-  const handleAcceptInvite = async (notificationId: number, brandId: number) => {
+  const handleAcceptInvite = async (brandId: number, notificationId: number) => {
     try {
-      await axios.post(
-        'http://localhost:3001/api/accept-invite',
-        { notificationId },
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      );
-      setNotifications(notifications.filter(notification => notification.id !== notificationId));
+      await axios.post('http://localhost:3001/api/accept-invite', { brandId }, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      // Marca la notificación como leída
+      setNotifications(notifications.map(n => 
+        n.id === notificationId ? { ...n, readed: 'yes' } : n
+      ));
     } catch (err) {
       console.error('Error accepting invitation:', err);
       setError('An error occurred while accepting the invitation');
     }
   };
 
+  if (error) {
+    return <div className="text-center text-red-500">{error}</div>;
+  }
+
   return (
-    <div className="p-8 bg-white shadow mt-6">
+    <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Notifications</h2>
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      <ul>
-        {notifications.map(notification => (
-          <li key={notification.id} className="mb-4 p-4 border border-gray-200 rounded">
-            <p className="mb-2">{notification.message}</p>
-            <button
-              onClick={() => handleAcceptInvite(notification.id, notification.brand_id)}
-              className="px-4 py-2 bg-green-500 text-white rounded"
-            >
-              Accept
-            </button>
-          </li>
-        ))}
-      </ul>
+      {notifications.length === 0 ? (
+        <p>No notifications</p>
+      ) : (
+        notifications.map(notification => (
+          <div key={notification.id} className="bg-white shadow p-4 mb-4 rounded-lg">
+            <p>{notification.message}</p>
+            {notification.readed === 'no' && (
+              <button
+                onClick={() => handleAcceptInvite(notification.brand_id, notification.id)}
+                className="mt-2 text-white py-1 px-4 rounded bg-blue-500 hover:bg-blue-600"
+              >
+                Accept
+              </button>
+            )}
+          </div>
+        ))
+      )}
     </div>
   );
 };

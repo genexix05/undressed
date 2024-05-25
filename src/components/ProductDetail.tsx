@@ -22,6 +22,7 @@ const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { accessToken } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
+  const [isSaved, setIsSaved] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -37,8 +38,44 @@ const ProductDetail: React.FC = () => {
       }
     };
 
+    const checkIfSaved = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3001/api/check-saved/${id}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        setIsSaved(response.data.isSaved);
+      } catch (error) {
+        console.error('Error checking saved status:', error);
+      }
+    };
+
     fetchProduct();
+    checkIfSaved();
   }, [id, accessToken]);
+
+  const handleSaveProduct = async () => {
+    try {
+      if (isSaved) {
+        await axios.post('http://localhost:3001/api/unsave-product', { productId: id }, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        setIsSaved(false);
+      } else {
+        await axios.post('http://localhost:3001/api/save-product', { productId: id }, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        setIsSaved(true);
+      }
+    } catch (error) {
+      console.error('Error saving/unsaving product:', error);
+    }
+  };
 
   if (!product) {
     return <div>Loading...</div>;
@@ -71,7 +108,15 @@ const ProductDetail: React.FC = () => {
           <p className="text-xl font-semibold text-red-600 mb-1">{product.price}</p>
           <div className="flex items-center mb-4">
             <button className="bg-black text-white py-2 px-4 rounded flex items-center">
-              Añadir a la cesta
+              Link del producto
+            </button>
+          </div>
+          <div className="flex items-center mb-4">
+            <button
+              onClick={handleSaveProduct}
+              className={`bg-black text-white py-2 px-4 rounded flex items-center ${isSaved ? 'bg-red-500' : 'bg-gray-500'}`}
+            >
+              {isSaved ? 'Guardado' : 'Guardar'}
               <FaHeart className="ml-2" />
             </button>
           </div>

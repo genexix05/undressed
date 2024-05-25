@@ -769,44 +769,6 @@ app.get('/api/posts/:id/status', authenticateToken, async (req, res) => {
   }
 });
 
-// Rutas para manejar guardar productos
-app.post('/api/products/:id/save', authenticateToken, async (req, res) => {
-  const productId = req.params.id;
-  const userId = req.user.userId;
-  try {
-    await promisePool.query('INSERT INTO saved_products (product_id, user_id) VALUES (?, ?)', [productId, userId]);
-    res.status(200).send('Saved');
-  } catch (error) {
-    console.error('Error saving product:', error);
-    res.status(500).send('Error saving product');
-  }
-});
-
-app.post('/api/products/:id/unsave', authenticateToken, async (req, res) => {
-  const productId = req.params.id;
-  const userId = req.user.userId;
-  try {
-    await promisePool.query('DELETE FROM saved_products WHERE product_id = ? AND user_id = ?', [productId, userId]);
-    res.status(200).send('Unsaved');
-  } catch (error) {
-    console.error('Error unsaving product:', error);
-    res.status(500).send('Error unsaving product');
-  }
-});
-
-// Ruta para obtener el estado inicial de guardado
-app.get('/api/products/:id/status', authenticateToken, async (req, res) => {
-  const productId = req.params.id;
-  const userId = req.user.userId;
-  try {
-    const [saveRows] = await promisePool.query('SELECT 1 FROM saved_products WHERE product_id = ? AND user_id = ?', [productId, userId]);
-    res.json({ saved: saveRows.length > 0 });
-  } catch (error) {
-    console.error('Error fetching status:', error);
-    res.status(500).send('Error fetching status');
-  }
-});
-
 app.get('/api/brand/:brandId/stats', authenticateToken, async (req, res) => {
   const { brandId } = req.params;
 
@@ -1040,24 +1002,38 @@ app.post('/api/generate-invite-link', authenticateToken, async (req, res) => {
 
 // Accept invitation
 app.post('/api/accept-invite', authenticateToken, async (req, res) => {
-  const { token } = req.body;
   const userId = req.user.userId;
+  const { brandId } = req.body;
+
+  if (!userId || !brandId) {
+    return res.status(400).json({ error: 'User ID and Brand ID are required' });
+  }
 
   try {
-    const [invite] = await promisePool.query('SELECT brand_id FROM notifications WHERE message LIKE ?', [`%${token}%`]);
-    if (invite.length === 0) {
-      return res.status(404).json({ error: 'Invalid invitation token' });
-    }
-    const brandId = invite[0].brand_id;
+    // Inserta el usuario en la tabla brand_users
+    await promisePool.query(
+      'INSERT INTO brand_users (brand_id, user_id, role) VALUES (?, ?, "viewer")',
+      [brandId, userId]
+    );
 
-    await promisePool.query('INSERT INTO brand_users (brand_id, user_id) VALUES (?, ?)', [brandId, userId]);
-    await promisePool.query('UPDATE notifications SET read = true WHERE message LIKE ?', [`%${token}%`]);
-    res.json({ message: 'Invitation accepted' });
+    // Borra la notificación después de aceptar la invitación
+    await promisePool.query(
+      'DELETE FROM notifications WHERE user_id = ? AND brand_id = ? AND message = "You have been invited to join the brand"',
+      [userId, brandId]
+    );
+
+    await promisePool.query(
+      'UPDATE users SET role = "brand" WHERE id = ?',
+      [userId]
+    );
+
+    res.status(200).json({ message: 'Invitation accepted' });
   } catch (error) {
     console.error('Error accepting invitation:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 // Obtener notificaciones del usuario autenticado
 app.get('/api/notifications', authenticateToken, async (req, res) => {
@@ -1079,6 +1055,79 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// Ruta para verificar si un producto está guardado
+app.get('/api/check-saved/:productId', authenticateToken, async (req, res) => {
+  const { productId } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const [rows] = await promisePool.query('SELECT COUNT(*) as count FROM saved_products WHERE product_id = ? AND user_id = ?', [productId, userId]);
+    res.json({ isSaved: rows[0].count > 0 });
+  } catch (error) {
+    console.error('Error checking saved status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Ruta para guardar un producto
+app.post('/api/save-product', authenticateToken, async (req, res) => {
+  const { productId } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    await promisePool.query('INSERT INTO saved_products (product_id, user_id) VALUES (?, ?)', [productId, userId]);
+    res.status(200).json({ message: 'Product saved successfully' });
+  } catch (error) {
+    console.error('Error saving product:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Ruta para eliminar un producto de los guardados
+app.post('/api/unsave-product', authenticateToken, async (req, res) => {
+  const { productId } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    await promisePool.query('DELETE FROM saved_products WHERE product_id = ? AND user_id = ?', [productId, userId]);
+    res.status(200).json({ message: 'Product unsaved successfully' });
+  } catch (error) {
+    console.error('Error unsaving product:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// Ruta para obtener los productos guardados
+app.get('/api/saved-products', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const [savedProducts] = await promisePool.query(`
+      SELECT p.id, p.name, p.price, pf.file_path AS image
+      FROM saved_products sp
+      JOIN products p ON sp.product_id = p.id
+      JOIN post_files pf ON p.id = pf.post_id
+      WHERE sp.user_id = ?
+    `, [userId]);
+
+    const products = savedProducts.reduce((acc, product) => {
+      if (!acc[product.id]) {
+        acc[product.id] = { ...product, images: [] };
+      }
+      acc[product.id].images.push(product.image);
+      return acc;
+    }, {});
+
+    res.json(Object.values(products));
+  } catch (error) {
+    console.error('Error fetching saved products:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 
 
 
