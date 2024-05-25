@@ -907,41 +907,51 @@ app.get('/api/users', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+app.get('/api/brandinfo/:brandId', authenticateToken, async (req, res) => {
+  const { brandId } = req.params;
 
-app.get('/api/brand/:brandId/', authenticateToken, async (req, res) => {
-  const { id } = req.params;
-
-  console.log('Fetching brand info for brand ID:', id); // Agregado para verificar la ID
+  if (!brandId) {
+    return res.status(400).json({ error: 'Brand ID is required' });
+  }
 
   try {
-    const [brand] = await promisePool.query('SELECT id, name, description, logo FROM brands WHERE id = ?', [id]);
+    // Query to fetch the brand details
+    const [brandResult] = await promisePool.query('SELECT id, name, description, logo FROM brands WHERE id = ?', [brandId]);
 
-    console.log('Brand query result:', brand); // Agregado para verificar el resultado de la consulta
-
-    if (brand.length === 0) {
+    // Check if the brand was found
+    if (brandResult.length === 0) {
       return res.status(404).json({ error: 'Brand not found' });
     }
 
-    const [followers] = await promisePool.query('SELECT COUNT(*) as count FROM brand_followers WHERE brand_id = ?', [id]);
-    const [posts] = await promisePool.query('SELECT COUNT(*) as count FROM posts WHERE brand_id = ?', [id]);
-    const [likes] = await promisePool.query('SELECT COUNT(*) as count FROM post_likes pl JOIN posts p ON pl.post_id = p.id WHERE p.brand_id = ?', [id]);
+    // Logs for debugging
+    console.log('Brand data:', brandResult);
 
-    console.log('Followers:', followers[0].count);
-    console.log('Posts:', posts[0].count);
-    console.log('Likes:', likes[0].count);
+    // Queries to fetch followers, posts, and likes counts
+    const [followersResult] = await promisePool.query('SELECT COUNT(*) as count FROM brand_followers WHERE brand_id = ?', [brandId]);
+    const [postsResult] = await promisePool.query('SELECT COUNT(*) as count FROM posts WHERE brand_id = ?', [brandId]);
+    const [likesResult] = await promisePool.query('SELECT COUNT(*) as count FROM post_likes pl JOIN posts p ON pl.post_id = p.id WHERE p.brand_id = ?', [brandId]);
 
-    res.json({
-      ...brand[0],
-      followers: followers[0].count,
-      posts: posts[0].count,
-      likes: likes[0].count,
-    });
+    // Additional logs for debugging
+    console.log('Followers:', followersResult[0].count);
+    console.log('Posts:', postsResult[0].count);
+    console.log('Likes:', likesResult[0].count);
+
+    // Constructing the response object
+    const brandInfo = {
+      ...brandResult[0],
+      followers: followersResult[0].count,
+      posts: postsResult[0].count,
+      likes: likesResult[0].count,
+    };
+
+    // Sending the response
+    res.json(brandInfo);
   } catch (error) {
+    // Error handling
     console.error('Error fetching brand info:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 
 app.listen(port, () => {
   console.log(`Node server listening at http://localhost:${port}`);

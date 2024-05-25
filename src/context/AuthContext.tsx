@@ -55,16 +55,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     }
   }, []);
-
+  
   const checkIsInBrand = async (token: string) => {
     try {
       const response = await axios.get('http://localhost:3001/api/check-in-brand', {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Check in brand response:', response.data);
       setIsInBrand(response.data.isInBrand);
       if (response.data.isInBrand) {
         console.log("User is in a brand");
-        // Fetch brand ID if the user is in a brand
         await fetchBrandId(token);
       }
     } catch (error) {
@@ -73,19 +73,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setBrandId(null);
     }
   };
-
+  
   const fetchBrandId = async (token: string) => {
     try {
       const response = await axios.get('http://localhost:3001/api/get-brand-id', {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Get brand ID response:', response.data);
       setBrandId(response.data.brandId);
       console.log("Brand ID:", response.data.brandId);
     } catch (error) {
       console.error('Error retrieving brand ID:', error);
       setBrandId(null);
     }
-  };
+  };  
 
   const login = (accessToken: string, refreshToken: string) => {
     setAccessToken(accessToken);
