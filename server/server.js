@@ -4,12 +4,12 @@ const subdomain = require("express-subdomain");
 const axios = require("axios");
 const cors = require("cors");
 const mysql = require("mysql2");
-const path = require('path');
+const path = require("path");
 const app = express();
 const port = 3001;
 
 const bodyParser = require("body-parser");
-const multer = require('multer');
+const multer = require("multer");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
@@ -17,13 +17,10 @@ const { v4: uuidv4 } = require("uuid");
 const { google } = require("googleapis");
 const OAuth2 = google.auth.OAuth2;
 
-
-
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
 const authenticateToken = require("../src/middleware/authMiddleware");
-
 
 app.use(
   cors({
@@ -34,7 +31,7 @@ app.use(
 );
 app.use(bodyParser.json());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 app.get("/start_spider", (req, res) => {
   axios
@@ -145,7 +142,8 @@ app.post("/register-brand", async (req, res) => {
 
     console.log("Correo de verificación enviado.");
     res.send({
-      message: "Marca registrada correctamente, se ha enviado un correo de verificación.",
+      message:
+        "Marca registrada correctamente, se ha enviado un correo de verificación.",
       userId: result.insertId,
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -209,7 +207,8 @@ app.post("/register", async (req, res) => {
 
     console.log("Correo de verificación enviado.");
     res.send({
-      message: "Usuario registrado correctamente, se ha enviado un correo de verificación.",
+      message:
+        "Usuario registrado correctamente, se ha enviado un correo de verificación.",
       userId: result.insertId,
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -219,7 +218,6 @@ app.post("/register", async (req, res) => {
     res.status(500).send({ error: "Error en el registro: " + error.message });
   }
 });
-
 
 // Verificación de Usuarios por correo
 
@@ -285,7 +283,6 @@ app.get("/verify", async (req, res) => {
       .json({ error: "Error al verificar el usuario: " + error.message });
   }
 });
-
 
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -363,7 +360,6 @@ app.post("/token", async (req, res) => {
     res.json({ accessToken: newAccessToken });
   });
 });
-
 
 // Cosas de la cuenta
 
@@ -444,66 +440,78 @@ app.post("/update", authenticateToken, async (req, res) => {
   }
 });
 
-
 // Registro de marcas
 
 // Guardar Uploads
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '..', 'uploads'));
+    cb(null, path.join(__dirname, "..", "uploads"));
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
+  },
 });
 
 const upload = multer({ storage: storage });
 
 // Crear Marca
 
-app.post("/create-brand", authenticateToken, upload.single('logo'), async (req, res) => {
-  const { name, description } = req.body;
+app.post(
+  "/create-brand",
+  authenticateToken,
+  upload.single("logo"),
+  async (req, res) => {
+    const { name, description } = req.body;
 
-  if (req.user.role !== 'brand') {
-    return res.status(403).send("Acceso denegado. Solo los usuarios con el rol 'brand' pueden crear marcas.");
-  }
-
-  try {
-    // Verifica si se ha subido un archivo
-    if (!req.file) {
-      return res.status(400).send("El logo de la marca es obligatorio.");
+    if (req.user.role !== "brand") {
+      return res
+        .status(403)
+        .send(
+          "Acceso denegado. Solo los usuarios con el rol 'brand' pueden crear marcas."
+        );
     }
 
-    // Ruta del logo subido
-    const logoPath = req.file.path;
+    try {
+      // Verifica si se ha subido un archivo
+      if (!req.file) {
+        return res.status(400).send("El logo de la marca es obligatorio.");
+      }
 
-    const [result] = await promisePool.query(
-      "INSERT INTO brands (name, description, logo, owner_id) VALUES (?, ?, ?, ?)",
-      [name, description, logoPath, req.user.userId]
-    );
+      // Ruta del logo subido
+      const logoPath = req.file.path;
 
-    await promisePool.query(
-      "INSERT INTO brand_users (brand_id, user_id, role) VALUES (?, ?, ?)",
-      [result.insertId, req.user.userId, 'admin']
-    );
+      const [result] = await promisePool.query(
+        "INSERT INTO brands (name, description, logo, owner_id) VALUES (?, ?, ?, ?)",
+        [name, description, logoPath, req.user.userId]
+      );
 
-    res.send({ message: "Marca creada correctamente.", brandId: result.insertId, success: true });
-  } catch (error) {
-    console.error("Error al crear la marca:", error);
-    res.status(500).send("Error al crear la marca.");
+      await promisePool.query(
+        "INSERT INTO brand_users (brand_id, user_id, role) VALUES (?, ?, ?)",
+        [result.insertId, req.user.userId, "admin"]
+      );
+
+      res.send({
+        message: "Marca creada correctamente.",
+        brandId: result.insertId,
+        success: true,
+      });
+    } catch (error) {
+      console.error("Error al crear la marca:", error);
+      res.status(500).send("Error al crear la marca.");
+    }
   }
-});
+);
 
 // Api
 
 // Obtener marcas
 
-app.get('/api/check-in-brand', authenticateToken, async (req, res) => {
+app.get("/api/check-in-brand", authenticateToken, async (req, res) => {
   try {
     const [rows] = await promisePool.query(
-      'SELECT 1 FROM brand_users WHERE user_id = ? LIMIT 1',
+      "SELECT 1 FROM brand_users WHERE user_id = ? LIMIT 1",
       [req.user.userId]
     );
     if (rows.length > 0) {
@@ -512,17 +520,17 @@ app.get('/api/check-in-brand', authenticateToken, async (req, res) => {
       res.json({ isInBrand: false });
     }
   } catch (error) {
-    console.error('Error checking brand status:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error checking brand status:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Obtener ID de la marca
 
-app.get('/api/get-brand-id', authenticateToken, async (req, res) => {
+app.get("/api/get-brand-id", authenticateToken, async (req, res) => {
   try {
     const [rows] = await promisePool.query(
-      'SELECT brand_id FROM brand_users WHERE user_id = ? LIMIT 1',
+      "SELECT brand_id FROM brand_users WHERE user_id = ? LIMIT 1",
       [req.user.userId]
     );
     if (rows.length > 0) {
@@ -531,53 +539,64 @@ app.get('/api/get-brand-id', authenticateToken, async (req, res) => {
       res.json({ brandId: null });
     }
   } catch (error) {
-    console.error('Error retrieving brand ID:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error retrieving brand ID:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 // Posts
 
-app.post("/api/create-post", authenticateToken, upload.array('images'), async (req, res) => {
-  const { title, content, brandId } = req.body;
-  const files = req.files;
+app.post(
+  "/api/create-post",
+  authenticateToken,
+  upload.array("images"),
+  async (req, res) => {
+    const { title, content, brandId } = req.body;
+    const files = req.files;
 
-  if (req.user.role !== 'brand') {
-    return res.status(403).send("Acceso denegado. Solo los usuarios con el rol 'brand' pueden crear publicaciones.");
-  }
-
-  if (!brandId) {
-    return res.status(400).send("El ID de la marca es requerido.");
-  }
-
-  try {
-    const [result] = await promisePool.query(
-      "INSERT INTO posts (brand_id, title, content, created_by) VALUES (?, ?, ?, ?)",
-      [brandId, title, content, req.user.userId]
-    );
-
-    if (files && files.length > 0) {
-      const postId = result.insertId;
-      const fileInsertQueries = files.map(file => {
-        return promisePool.query(
-          "INSERT INTO post_files (post_id, file_path) VALUES (?, ?)",
-          [postId, file.path]
+    if (req.user.role !== "brand") {
+      return res
+        .status(403)
+        .send(
+          "Acceso denegado. Solo los usuarios con el rol 'brand' pueden crear publicaciones."
         );
-      });
-      await Promise.all(fileInsertQueries);
     }
 
-    res.send({ message: "Publicación creada correctamente.", postId: result.insertId });
-  } catch (error) {
-    console.error("Error al crear la publicación:", error);
-    res.status(500).send(`Error al crear la publicación: ${error.message}`);
+    if (!brandId) {
+      return res.status(400).send("El ID de la marca es requerido.");
+    }
+
+    try {
+      const [result] = await promisePool.query(
+        "INSERT INTO posts (brand_id, title, content, created_by) VALUES (?, ?, ?, ?)",
+        [brandId, title, content, req.user.userId]
+      );
+
+      if (files && files.length > 0) {
+        const postId = result.insertId;
+        const fileInsertQueries = files.map((file) => {
+          return promisePool.query(
+            "INSERT INTO post_files (post_id, file_path) VALUES (?, ?)",
+            [postId, file.path]
+          );
+        });
+        await Promise.all(fileInsertQueries);
+      }
+
+      res.send({
+        message: "Publicación creada correctamente.",
+        postId: result.insertId,
+      });
+    } catch (error) {
+      console.error("Error al crear la publicación:", error);
+      res.status(500).send(`Error al crear la publicación: ${error.message}`);
+    }
   }
-});
+);
 
 // Obtener publicaciones
 
-app.get('/api/posts', authenticateToken, async (req, res) => {
+app.get("/api/posts", authenticateToken, async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
   const offset = (page - 1) * limit;
 
@@ -603,186 +622,216 @@ app.get('/api/posts', authenticateToken, async (req, res) => {
       [parseInt(limit), parseInt(offset)]
     );
 
-    const posts = rows.map(row => ({
+    const posts = rows.map((row) => ({
       ...row,
-      images: row.images ? row.images.split(',').map(image => `/uploads/${path.basename(image)}`) : [],
-      brandLogo: row.brandLogo ? `/uploads/${path.basename(row.brandLogo)}` : null
+      images: row.images
+        ? row.images
+            .split(",")
+            .map((image) => `/uploads/${path.basename(image)}`)
+        : [],
+      brandLogo: row.brandLogo
+        ? `/uploads/${path.basename(row.brandLogo)}`
+        : null,
     }));
 
     res.json({ posts });
   } catch (error) {
-    console.error('Error fetching posts:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching posts:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Buscar
 
-app.get('/api/search', authenticateToken, async (req, res) => {
+app.get("/api/search", authenticateToken, async (req, res) => {
   const { query } = req.query;
 
   if (!query) {
-    return res.status(400).json({ error: 'Query parameter is required' });
+    return res.status(400).json({ error: "Query parameter is required" });
   }
 
   const lowerCaseQuery = `%${query.toLowerCase()}%`;
 
   try {
     const [users] = await promisePool.query(
-      'SELECT id, username, profile_pic FROM users WHERE LOWER(username) LIKE ?',
+      "SELECT id, username, profile_pic FROM users WHERE LOWER(username) LIKE ?",
       [lowerCaseQuery]
     );
 
     const [brands] = await promisePool.query(
-      'SELECT id, name, logo FROM brands WHERE LOWER(name) LIKE ?',
+      "SELECT id, name, logo FROM brands WHERE LOWER(name) LIKE ?",
       [lowerCaseQuery]
     );
 
     const [products] = await promisePool.query(
-      'SELECT id, name, image_urls, price FROM products WHERE LOWER(name) LIKE ?',
+      "SELECT id, name, image_urls, price FROM products WHERE LOWER(name) LIKE ?",
       [lowerCaseQuery]
     );
 
     // Parsear las URLs de las imágenes
-    const fixedProducts = products.map(product => {
-      const images = product.image_urls ? product.image_urls.split(',').map(url => url.trim()) : [];
+    const fixedProducts = products.map((product) => {
+      const images = product.image_urls
+        ? product.image_urls.split(",").map((url) => url.trim())
+        : [];
       return {
         ...product,
-        image_urls: images.length > 0 ? images : []
+        image_urls: images.length > 0 ? images : [],
       };
     });
 
     res.json({ users, brands, products: fixedProducts });
   } catch (error) {
-    console.error('Error searching:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error searching:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.get('/api/products/:id', authenticateToken, async (req, res) => {
+app.get("/api/products/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {
-    const [rows] = await promisePool.query('SELECT * FROM products WHERE id = ?', [id]);
+    const [rows] = await promisePool.query(
+      "SELECT * FROM products WHERE id = ?",
+      [id]
+    );
 
     if (rows.length === 0) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res.status(404).json({ error: "Product not found" });
     }
 
     const product = rows[0];
-    product.images = product.image_urls.split(','); // Ajusta esto según cómo almacenes las URLs de las imágenes
+    product.images = product.image_urls.split(","); // Ajusta esto según cómo almacenes las URLs de las imágenes
 
     res.json(product);
   } catch (error) {
-    console.error('Error fetching product:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching product:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-
-app.get('/api/brand/:id', authenticateToken, async (req, res) => {
+app.get("/api/brand/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
-    const [brand] = await promisePool.query('SELECT * FROM brands WHERE id = ?', [id]);
+    const [brand] = await promisePool.query(
+      "SELECT * FROM brands WHERE id = ?",
+      [id]
+    );
     if (brand.length === 0) {
-      return res.status(404).json({ error: 'Brand not found' });
+      return res.status(404).json({ error: "Brand not found" });
     }
     res.json(brand[0]);
   } catch (error) {
-    console.error('Error fetching brand data:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching brand data:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.get('/api/brand-posts/:brandId', authenticateToken, async (req, res) => {
+app.get("/api/brand-posts/:brandId", authenticateToken, async (req, res) => {
   const { brandId } = req.params;
   try {
-    const [posts] = await promisePool.query('SELECT * FROM posts WHERE brand_id = ? ORDER BY created_at DESC', [brandId]);
+    const [posts] = await promisePool.query(
+      "SELECT * FROM posts WHERE brand_id = ? ORDER BY created_at DESC",
+      [brandId]
+    );
     res.json({ posts });
   } catch (error) {
-    console.error('Error fetching posts:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching posts:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.post('/api/profile-view', async (req, res) => {
+app.post("/api/profile-view", async (req, res) => {
   const { brandId } = req.body;
   try {
-    await promisePool.query('INSERT INTO profile_views (brand_id) VALUES (?)', [brandId]);
-    res.status(200).send('Profile view recorded');
+    await promisePool.query("INSERT INTO profile_views (brand_id) VALUES (?)", [
+      brandId,
+    ]);
+    res.status(200).send("Profile view recorded");
   } catch (error) {
-    console.error('Error recording profile view:', error);
-    res.status(500).send('Internal server error');
+    console.error("Error recording profile view:", error);
+    res.status(500).send("Internal server error");
   }
 });
 
-app.get('/api/profile-views/:brandId', authenticateToken, async (req, res) => {
+app.get("/api/profile-views/:brandId", authenticateToken, async (req, res) => {
   const { brandId } = req.params;
   try {
     const [views] = await promisePool.query(
-      'SELECT COUNT(*) as views FROM profile_views WHERE brand_id = ? AND viewed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)',
+      "SELECT COUNT(*) as views FROM profile_views WHERE brand_id = ? AND viewed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)",
       [brandId]
     );
     res.json({ views: views[0].views });
   } catch (error) {
-    console.error('Error fetching profile views:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching profile views:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Ruta para darle "like" a una publicación
-app.post('/api/posts/:id/like', authenticateToken, async (req, res) => {
+app.post("/api/posts/:id/like", authenticateToken, async (req, res) => {
   const postId = req.params.id;
   const userId = req.user.userId;
   try {
-    await promisePool.query('INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)', [postId, userId]);
-    res.status(200).send('Liked');
+    await promisePool.query(
+      "INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)",
+      [postId, userId]
+    );
+    res.status(200).send("Liked");
   } catch (error) {
-    console.error('Error liking post:', error);
-    res.status(500).send('Error liking post');
+    console.error("Error liking post:", error);
+    res.status(500).send("Error liking post");
   }
 });
 
-app.post('/api/posts/:id/unlike', authenticateToken, async (req, res) => {
+app.post("/api/posts/:id/unlike", authenticateToken, async (req, res) => {
   const postId = req.params.id;
   const userId = req.user.userId;
   try {
-    await promisePool.query('DELETE FROM post_likes WHERE post_id = ? AND user_id = ?', [postId, userId]);
-    res.status(200).send('Unliked');
+    await promisePool.query(
+      "DELETE FROM post_likes WHERE post_id = ? AND user_id = ?",
+      [postId, userId]
+    );
+    res.status(200).send("Unliked");
   } catch (error) {
-    console.error('Error unliking post:', error);
-    res.status(500).send('Error unliking post');
+    console.error("Error unliking post:", error);
+    res.status(500).send("Error unliking post");
   }
 });
 
 // Ruta para obtener el estado inicial
-app.get('/api/posts/:id/status', authenticateToken, async (req, res) => {
+app.get("/api/posts/:id/status", authenticateToken, async (req, res) => {
   const postId = req.params.id;
   const userId = req.user.userId;
   try {
-    const [likeRows] = await promisePool.query('SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?', [postId, userId]);
-    const [saveRows] = await promisePool.query('SELECT 1 FROM saved_products WHERE product_id = ? AND user_id = ?', [postId, userId]);
+    const [likeRows] = await promisePool.query(
+      "SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?",
+      [postId, userId]
+    );
+    const [saveRows] = await promisePool.query(
+      "SELECT 1 FROM saved_products WHERE product_id = ? AND user_id = ?",
+      [postId, userId]
+    );
     res.json({ liked: likeRows.length > 0, saved: saveRows.length > 0 });
   } catch (error) {
-    console.error('Error fetching status:', error);
-    res.status(500).send('Error fetching status');
+    console.error("Error fetching status:", error);
+    res.status(500).send("Error fetching status");
   }
 });
 
-app.get('/api/brand/:brandId/stats', authenticateToken, async (req, res) => {
+app.get("/api/brand/:brandId/stats", authenticateToken, async (req, res) => {
   const { brandId } = req.params;
 
   try {
     // Obtén el conteo de likes
     const [likesResult] = await promisePool.query(
-      'SELECT COUNT(*) as likes FROM post_likes WHERE post_id IN (SELECT id FROM posts WHERE brand_id = ?)',
+      "SELECT COUNT(*) as likes FROM post_likes WHERE post_id IN (SELECT id FROM posts WHERE brand_id = ?)",
       [brandId]
     );
     const likes = likesResult[0].likes;
 
     // Obtén el conteo de productos guardados
     const [savedItemsResult] = await promisePool.query(
-      'SELECT COUNT(*) as savedItems FROM saved_products WHERE product_id IN (SELECT id FROM products WHERE id IN (SELECT product_id FROM post_files WHERE post_id IN (SELECT id FROM posts WHERE brand_id = ?)))',
+      "SELECT COUNT(*) as savedItems FROM saved_products WHERE product_id IN (SELECT id FROM products WHERE id IN (SELECT product_id FROM post_files WHERE post_id IN (SELECT id FROM posts WHERE brand_id = ?)))",
       [brandId]
     );
     const savedItems = savedItemsResult[0].savedItems;
@@ -818,18 +867,24 @@ app.get('/api/brand/:brandId/stats', authenticateToken, async (req, res) => {
     );
     const totalVisits = totalVisitsResult[0].totalVisits;
 
-    res.json({ likes, savedItems, last7DaysVisits, last30DaysVisits, totalVisits });
+    res.json({
+      likes,
+      savedItems,
+      last7DaysVisits,
+      last30DaysVisits,
+      totalVisits,
+    });
   } catch (error) {
-    console.error('Error fetching stats:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching stats:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.get('/api/users', authenticateToken, async (req, res) => {
+app.get("/api/users", authenticateToken, async (req, res) => {
   const { brandId } = req.query;
 
   if (!brandId) {
-    return res.status(400).json({ error: 'Brand ID is required' });
+    return res.status(400).json({ error: "Brand ID is required" });
   }
 
   try {
@@ -842,30 +897,42 @@ app.get('/api/users', authenticateToken, async (req, res) => {
     );
     res.json(users);
   } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
-app.get('/api/brandinfo/:brandId', authenticateToken, async (req, res) => {
+app.get("/api/brandinfo/:brandId", authenticateToken, async (req, res) => {
   const { brandId } = req.params;
 
   if (!brandId) {
-    return res.status(400).json({ error: 'Brand ID is required' });
+    return res.status(400).json({ error: "Brand ID is required" });
   }
 
   try {
     // Query to fetch the brand details
-    const [brandResult] = await promisePool.query('SELECT id, name, description, logo FROM brands WHERE id = ?', [brandId]);
+    const [brandResult] = await promisePool.query(
+      "SELECT id, name, description, logo FROM brands WHERE id = ?",
+      [brandId]
+    );
 
     // Check if the brand was found
     if (brandResult.length === 0) {
-      return res.status(404).json({ error: 'Brand not found' });
+      return res.status(404).json({ error: "Brand not found" });
     }
 
     // Queries to fetch followers, posts, and likes counts
-    const [followersResult] = await promisePool.query('SELECT COUNT(*) as count FROM brand_followers WHERE brand_id = ?', [brandId]);
-    const [postsResult] = await promisePool.query('SELECT COUNT(*) as count FROM posts WHERE brand_id = ?', [brandId]);
-    const [likesResult] = await promisePool.query('SELECT COUNT(*) as count FROM post_likes pl JOIN posts p ON pl.post_id = p.id WHERE p.brand_id = ?', [brandId]);
+    const [followersResult] = await promisePool.query(
+      "SELECT COUNT(*) as count FROM brand_followers WHERE brand_id = ?",
+      [brandId]
+    );
+    const [postsResult] = await promisePool.query(
+      "SELECT COUNT(*) as count FROM posts WHERE brand_id = ?",
+      [brandId]
+    );
+    const [likesResult] = await promisePool.query(
+      "SELECT COUNT(*) as count FROM post_likes pl JOIN posts p ON pl.post_id = p.id WHERE p.brand_id = ?",
+      [brandId]
+    );
 
     // Constructing the response object
     const brandInfo = {
@@ -879,134 +946,170 @@ app.get('/api/brandinfo/:brandId', authenticateToken, async (req, res) => {
     res.json(brandInfo);
   } catch (error) {
     // Error handling
-    console.error('Error fetching brand info:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching brand info:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Endpoint para obtener los posts de una marca
-app.get('/api/posts/:brandId', authenticateToken, async (req, res) => {
+app.get("/api/posts/:brandId", authenticateToken, async (req, res) => {
   const { brandId } = req.params;
 
   try {
-    const [posts] = await promisePool.query('SELECT id, title, content, created_at FROM posts WHERE brand_id = ?', [brandId]);
+    const [posts] = await promisePool.query(
+      "SELECT id, title, content, created_at FROM posts WHERE brand_id = ?",
+      [brandId]
+    );
 
-    const postsWithImages = await Promise.all(posts.map(async post => {
-      const [images] = await promisePool.query('SELECT file_path FROM post_files WHERE post_id = ?', [post.id]);
-      return {
-        ...post,
-        images: images.map(image => `${path.basename(image.file_path)}`),
-      };
-    }));
+    const postsWithImages = await Promise.all(
+      posts.map(async (post) => {
+        const [images] = await promisePool.query(
+          "SELECT file_path FROM post_files WHERE post_id = ?",
+          [post.id]
+        );
+        return {
+          ...post,
+          images: images.map((image) => `${path.basename(image.file_path)}`),
+        };
+      })
+    );
 
     res.json(postsWithImages);
   } catch (error) {
-    console.error('Error fetching posts:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching posts:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.get('/api/check-following/:brandId', authenticateToken, async (req, res) => {
-  const { brandId } = req.params;
-  const userId = req.user.userId;
+app.get(
+  "/api/check-following/:brandId",
+  authenticateToken,
+  async (req, res) => {
+    const { brandId } = req.params;
+    const userId = req.user.userId;
 
-  try {
-    const [rows] = await promisePool.query('SELECT COUNT(*) as count FROM brand_followers WHERE brand_id = ? AND user_id = ?', [brandId, userId]);
-    res.json({ isFollowing: rows[0].count > 0 });
-  } catch (error) {
-    console.error('Error checking follow status:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    try {
+      const [rows] = await promisePool.query(
+        "SELECT COUNT(*) as count FROM brand_followers WHERE brand_id = ? AND user_id = ?",
+        [brandId, userId]
+      );
+      res.json({ isFollowing: rows[0].count > 0 });
+    } catch (error) {
+      console.error("Error checking follow status:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
-});
+);
 
-app.post('/api/follow', authenticateToken, async (req, res) => {
+app.post("/api/follow", authenticateToken, async (req, res) => {
   const { brandId } = req.body;
   const userId = req.user.userId;
 
-  console.log('ID del usuario que sigue:', userId);
+  console.log("ID del usuario que sigue:", userId);
 
   try {
-    await promisePool.query('INSERT INTO brand_followers (brand_id, user_id) VALUES (?, ?)', [brandId, userId]);
-    res.status(200).json({ message: 'Brand followed successfully' });
+    await promisePool.query(
+      "INSERT INTO brand_followers (brand_id, user_id) VALUES (?, ?)",
+      [brandId, userId]
+    );
+    res.status(200).json({ message: "Brand followed successfully" });
   } catch (error) {
-    console.error('Error following brand:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error following brand:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.post('/api/unfollow', authenticateToken, async (req, res) => {
+app.post("/api/unfollow", authenticateToken, async (req, res) => {
   const { brandId } = req.body;
   const userId = req.user.userId;
 
   try {
-    await promisePool.query('DELETE FROM brand_followers WHERE brand_id = ? AND user_id = ?', [brandId, userId]);
-    res.status(200).json({ message: 'Brand unfollowed successfully' });
+    await promisePool.query(
+      "DELETE FROM brand_followers WHERE brand_id = ? AND user_id = ?",
+      [brandId, userId]
+    );
+    res.status(200).json({ message: "Brand unfollowed successfully" });
   } catch (error) {
-    console.error('Error unfollowing brand:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error unfollowing brand:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 // Invite by username
-app.post('/api/invite-username', authenticateToken, async (req, res) => {
+app.post("/api/invite-username", authenticateToken, async (req, res) => {
   const { username } = req.body;
   const { brandId } = req.body;
 
   try {
-    const [user] = await promisePool.query('SELECT id FROM users WHERE username = ?', [username]);
+    const [user] = await promisePool.query(
+      "SELECT id FROM users WHERE username = ?",
+      [username]
+    );
     if (user.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
     const userId = user[0].id;
 
-    await promisePool.query('INSERT INTO notifications (user_id, message, brand_id) VALUES (?, ?, ?)', [userId, `You have been invited to join the brand ${brandId}`, brandId]);
-    res.json({ message: 'Invitation sent' });
+    await promisePool.query(
+      "INSERT INTO notifications (user_id, message, brand_id) VALUES (?, ?, ?)",
+      [userId, `You have been invited to join the brand ${brandId}`, brandId]
+    );
+    res.json({ message: "Invitation sent" });
   } catch (error) {
-    console.error('Error inviting user:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error inviting user:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Invite by email
-app.post('/api/invite-email', authenticateToken, async (req, res) => {
+app.post("/api/invite-email", authenticateToken, async (req, res) => {
   const { email } = req.body;
   const { brandId } = req.body;
 
   try {
     const inviteToken = generateInviteToken();
     await sendEmail(email, inviteToken);
-    await promisePool.query('INSERT INTO notifications (user_id, message, brand_id) VALUES ((SELECT id FROM users WHERE email = ?), ?, ?)', [email, `You have been invited to join the brand ${brandId}`, brandId]);
-    res.json({ message: 'Invitation email sent' });
+    await promisePool.query(
+      "INSERT INTO notifications (user_id, message, brand_id) VALUES ((SELECT id FROM users WHERE email = ?), ?, ?)",
+      [email, `You have been invited to join the brand ${brandId}`, brandId]
+    );
+    res.json({ message: "Invitation email sent" });
   } catch (error) {
-    console.error('Error sending invitation email:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error sending invitation email:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Generate invitation link
-app.post('/api/generate-invite-link', authenticateToken, async (req, res) => {
+app.post("/api/generate-invite-link", authenticateToken, async (req, res) => {
   const { brandId } = req.body;
 
   try {
     const inviteToken = generateInviteToken();
     const inviteLink = `http://localhost:3000/invite/${inviteToken}`;
 
-    await promisePool.query('INSERT INTO notifications (user_id, message, brand_id) VALUES (?, ?, ?)', [req.user.id, `Invitation link generated for brand ${brandId}: ${inviteLink}`, brandId]);
+    await promisePool.query(
+      "INSERT INTO notifications (user_id, message, brand_id) VALUES (?, ?, ?)",
+      [
+        req.user.id,
+        `Invitation link generated for brand ${brandId}: ${inviteLink}`,
+        brandId,
+      ]
+    );
     res.json({ inviteLink });
   } catch (error) {
-    console.error('Error generating invitation link:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error generating invitation link:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Accept invitation
-app.post('/api/accept-invite', authenticateToken, async (req, res) => {
+app.post("/api/accept-invite", authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   const { brandId } = req.body;
 
   if (!userId || !brandId) {
-    return res.status(400).json({ error: 'User ID and Brand ID are required' });
+    return res.status(400).json({ error: "User ID and Brand ID are required" });
   }
 
   try {
@@ -1022,95 +1125,103 @@ app.post('/api/accept-invite', authenticateToken, async (req, res) => {
       [userId, brandId]
     );
 
-    await promisePool.query(
-      'UPDATE users SET role = "brand" WHERE id = ?',
-      [userId]
-    );
+    await promisePool.query('UPDATE users SET role = "brand" WHERE id = ?', [
+      userId,
+    ]);
 
-    res.status(200).json({ message: 'Invitation accepted' });
+    res.status(200).json({ message: "Invitation accepted" });
   } catch (error) {
-    console.error('Error accepting invitation:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error accepting invitation:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-
 // Obtener notificaciones del usuario autenticado
-app.get('/api/notifications', authenticateToken, async (req, res) => {
+app.get("/api/notifications", authenticateToken, async (req, res) => {
   const userId = req.user.userId;
 
   if (!userId) {
-    return res.status(400).json({ error: 'User ID not found in request' });
+    return res.status(400).json({ error: "User ID not found in request" });
   }
 
   try {
     const [notifications] = await promisePool.query(
-      'SELECT id, message, brand_id, created_at, readed FROM notifications WHERE user_id = ?',
+      "SELECT id, message, brand_id, created_at, readed FROM notifications WHERE user_id = ?",
       [userId]
     );
 
     res.json(notifications);
   } catch (error) {
-    console.error('Error fetching notifications:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching notifications:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Ruta para verificar si un producto está guardado
-app.get('/api/check-saved/:productId', authenticateToken, async (req, res) => {
+app.get("/api/check-saved/:productId", authenticateToken, async (req, res) => {
   const { productId } = req.params;
   const userId = req.user.userId;
 
   try {
-    const [rows] = await promisePool.query('SELECT COUNT(*) as count FROM saved_products WHERE product_id = ? AND user_id = ?', [productId, userId]);
+    const [rows] = await promisePool.query(
+      "SELECT COUNT(*) as count FROM saved_products WHERE product_id = ? AND user_id = ?",
+      [productId, userId]
+    );
     res.json({ isSaved: rows[0].count > 0 });
   } catch (error) {
-    console.error('Error checking saved status:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error checking saved status:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Ruta para guardar un producto
-app.post('/api/save-product', authenticateToken, async (req, res) => {
+app.post("/api/save-product", authenticateToken, async (req, res) => {
   const { productId } = req.body;
   const userId = req.user.userId;
 
   try {
-    await promisePool.query('INSERT INTO saved_products (product_id, user_id) VALUES (?, ?)', [productId, userId]);
-    res.status(200).json({ message: 'Product saved successfully' });
+    await promisePool.query(
+      "INSERT INTO saved_products (product_id, user_id) VALUES (?, ?)",
+      [productId, userId]
+    );
+    res.status(200).json({ message: "Product saved successfully" });
   } catch (error) {
-    console.error('Error saving product:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error saving product:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Ruta para eliminar un producto de los guardados
-app.post('/api/unsave-product', authenticateToken, async (req, res) => {
+app.post("/api/unsave-product", authenticateToken, async (req, res) => {
   const { productId } = req.body;
   const userId = req.user.userId;
 
   try {
-    await promisePool.query('DELETE FROM saved_products WHERE product_id = ? AND user_id = ?', [productId, userId]);
-    res.status(200).json({ message: 'Product unsaved successfully' });
+    await promisePool.query(
+      "DELETE FROM saved_products WHERE product_id = ? AND user_id = ?",
+      [productId, userId]
+    );
+    res.status(200).json({ message: "Product unsaved successfully" });
   } catch (error) {
-    console.error('Error unsaving product:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error unsaving product:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-
 // Ruta para obtener los productos guardados
-app.get('/api/saved-products', authenticateToken, async (req, res) => {
+app.get("/api/saved-products", authenticateToken, async (req, res) => {
   const userId = req.user.userId;
 
   try {
-    const [savedProducts] = await promisePool.query(`
-      SELECT p.id, p.name, p.price, pf.file_path AS image
+    const [savedProducts] = await promisePool.query(
+      `
+    SELECT p.id, p.name, p.price, p.image_urls AS image
       FROM saved_products sp
       JOIN products p ON sp.product_id = p.id
-      JOIN post_files pf ON p.id = pf.post_id
       WHERE sp.user_id = ?
-    `, [userId]);
+    `,
+      [userId]
+    );
 
     const products = savedProducts.reduce((acc, product) => {
       if (!acc[product.id]) {
@@ -1120,16 +1231,14 @@ app.get('/api/saved-products', authenticateToken, async (req, res) => {
       return acc;
     }, {});
 
+    console.log("Processed products data:", products);
+
     res.json(Object.values(products));
   } catch (error) {
-    console.error('Error fetching saved products:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching saved products:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
-
-
-
-
 
 app.listen(port, () => {
   console.log(`Node server listening at http://localhost:${port}`);
