@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth, PostType } from '../context/AuthContext';
 
@@ -9,7 +9,7 @@ const useFetchPosts = (initialPage = 1, limit = 10) => {
   const [page, setPage] = useState(initialPage);
   const [hasMore, setHasMore] = useState(true);
 
-  const fetchPosts = async (page: number) => {
+  const fetchPosts = useCallback(async (page: number) => {
     setLoading(true);
     setError(null);
     try {
@@ -17,19 +17,29 @@ const useFetchPosts = (initialPage = 1, limit = 10) => {
         headers: { Authorization: `Bearer ${accessToken}` },
         params: { page, limit },
       });
-      setPosts((prevPosts: PostType[]) => [...prevPosts, ...response.data.posts]);
+      if (page === 1) {
+        setPosts(response.data.posts);
+      } else {
+        setPosts((prevPosts: PostType[]) => [...prevPosts, ...response.data.posts]);
+      }
       setHasMore(response.data.posts.length > 0);
     } catch (err) {
       setError('Error al obtener las publicaciones');
     }
     setLoading(false);
-  };
+  }, [accessToken, limit, setPosts]);
 
   useEffect(() => {
     if (accessToken) {
       fetchPosts(page);
     }
-  }, [page, accessToken]);
+  }, [page, accessToken, fetchPosts]);
+
+  useEffect(() => {
+    return () => {
+      setPosts([]);
+    };
+  }, [setPosts]);
 
   return { posts, loading, error, hasMore, setPage };
 };

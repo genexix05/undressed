@@ -74,21 +74,21 @@ const Saved: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col space-y-4">
+      <div className="flex flex-col space-y-2">
         {savedProducts.map(product => (
           product && product.images && product.images[0] ? (
-            <div key={product.id} className="flex items-center bg-white p-4 rounded-lg">
+            <div key={product.id} className="flex items-center bg-white p-2 rounded-lg">
               <img src={product.images[0]} alt={product.name} className="w-24 h-24 object-contain mr-4" />
-              <div className="flex-1">
-                <h2 className="text-xl font-bold">{product.name}</h2>
-                <p className="text-gray-700">${product.price}</p>
-              </div>
               <button
                 onClick={() => handleSaveProduct(product.id, true)}
-                className="text-blue-500"
+                className="text-purple-500"
               >
                 <BsBookmarkFill size={24} />
               </button>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-right">{product.name}</h2>
+                <p className="text-gray-700 text-right">${product.price}</p>
+              </div>
             </div>
           ) : null
         ))}
