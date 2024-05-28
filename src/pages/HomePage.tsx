@@ -25,12 +25,12 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="flex bg-gray-100">
-      <div className="fixed left-0 top-0 h-screen flex flex-col items-center w-1/5 justify-center p-4 ">
+      <div className="fixed flex flex-col items-center w-1/5 justify-center">
         <Sidebar />
       </div>
       <div className="flex flex-col items-center w-3/5 ml-auto">
         {userRole === 'brand' && isInBrand && (
-          <button onClick={openModal} className="mt-4 text-blue-600">
+          <button onClick={openModal} className="mt-4 text-purple-600">
             Crear Publicación
           </button>
         )}

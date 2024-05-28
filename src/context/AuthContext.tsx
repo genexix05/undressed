@@ -19,6 +19,7 @@ interface AuthContextType {
   isInBrand: boolean;
   brandId: string | null;
   brandName: string | null;
+  brandLogo: string | null;
   posts: PostType[];
   setPosts: React.Dispatch<React.SetStateAction<PostType[]>>;
   login: (accessToken: string, refreshToken: string) => void;
@@ -38,6 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isInBrand, setIsInBrand] = useState<boolean>(false);
   const [brandId, setBrandId] = useState<string | null>(null);
   const [brandName, setBrandName] = useState<string | null>(null);
+  const [brandLogo, setBrandLogo] = useState<string | null>(null);
   const [posts, setPosts] = useState<PostType[]>([]);
 
   useEffect(() => {
@@ -84,12 +86,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('Get brand ID response:', response.data);
       setBrandId(response.data.brandId);
       setBrandName(response.data.brandName);
+      setBrandLogo(response.data.brandLogo);
       console.log("Brand ID:", response.data.brandId);
       console.log("Brand Name:", response.data.brandName);
     } catch (error) {
       console.error('Error retrieving brand ID:', error);
       setBrandId(null);
       setBrandName(null);
+      setBrandLogo(null);
     }
   };  
 
@@ -123,7 +127,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userRole, accessToken, isInBrand, brandId, brandName, setPosts, posts, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, userRole, accessToken, isInBrand, brandId, brandName, brandLogo,setPosts, posts, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

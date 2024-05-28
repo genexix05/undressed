@@ -541,16 +541,16 @@ app.get("/api/check-in-brand", authenticateToken, async (req, res) => {
 app.get("/api/get-brand-id", authenticateToken, async (req, res) => {
   try {
     const [rows] = await promisePool.query(
-      `SELECT bu.brand_id, b.name
+      `SELECT bu.brand_id, b.name, b.brandLogo
        FROM brand_users bu
        JOIN brands b ON bu.brand_id = b.id
        WHERE bu.user_id = ? LIMIT 1`,
       [req.user.userId]
     );
     if (rows.length > 0) {
-      res.json({ brandId: rows[0].brand_id, brandName: rows[0].name });
+      res.json({ brandId: rows[0].brand_id, brandName: rows[0].name, brandLogo: rows[0].brandLogo });
     } else {
-      res.json({ brandId: null, brandName: null });
+      res.json({ brandId: null, brandName: null, brandLogo: null });
     }
   } catch (error) {
     console.error("Error retrieving brand ID:", error);

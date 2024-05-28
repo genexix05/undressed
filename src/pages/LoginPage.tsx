@@ -32,34 +32,48 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-10 p-4 border rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-center">Iniciar Sesión</h2>
-      <div className="mb-4">
-        <label className="block mb-1" htmlFor="email">Correo Electrónico</label>
-        <input
-          type="email"
-          id="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border p-2 rounded"
-          required
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block mb-1" htmlFor="password">Contraseña</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border p-2 rounded"
-          required
-        />
-      </div>
-      <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
-        Iniciar Sesión
-      </button>
-    </form>
+    <div className=" mt-32 flex items-center justify-center bg-gray-100">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">¿Ya eres socio de Undressed?</h2>
+        <div className="flex justify-center items-center mb-6">
+          <span className="block border-t w-full"></span>
+          <span className="block border-t w-full"></span>
+        </div>
+        <div className="mb-4">
+          <label className="block mb-1 text-gray-600" htmlFor="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border p-2 rounded focus:outline-none focus:ring focus:border-blue-300"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block mb-1 text-gray-600" htmlFor="password">Contraseña</label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border p-2 rounded focus:outline-none focus:ring focus:border-blue-300"
+            required
+          />
+        </div>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <a href="#" className="text-sm text-blue-600 hover:underline">He olvidado mi contraseña</a>
+          </div>
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-purple-600 text-white p-2 rounded-lg focus:outline-none focus:ring-2"
+        >
+          Conectarme
+        </button>
+      </form>
+    </div>
   );
 };
 
