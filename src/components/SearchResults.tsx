@@ -1,14 +1,22 @@
-import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import useSearch from '../hooks/useSearch';
-import { FaHeart, FaCheck } from 'react-icons/fa';
+import React from "react";
+import { useLocation, Link } from "react-router-dom";
+import useSearch from "../hooks/useSearch";
+import { FaHeart, FaCheck } from "react-icons/fa";
 
 const SearchResults: React.FC = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const query = searchParams.get('query') || '';
+  const query = searchParams.get("query") || "";
 
   const { users, brands, products, loading, error } = useSearch(query);
+
+  const getFullImageUrl = (url: string | null) => {
+    if (!url) return "";
+    const correctedUrl = url.replace(/\\/g, "/"); // Reemplazar las barras invertidas por barras normales
+    return correctedUrl.startsWith("..")
+      ? `http://localhost:3001${correctedUrl.slice(2)}`
+      : correctedUrl;
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -21,17 +29,23 @@ const SearchResults: React.FC = () => {
   return (
     <div className="flex justify-center p-4 bg-gray-100">
       <div className="max-w-4xl w-full">
+      <span className="mx-4 text-gray-500">Marcas</span>
+        <div className="flex-grow border-t border-gray-300"></div>
         {brands.length > 0 && (
-          <div className="mb-8">
-            {brands.map(brand => (
-              <Link to={`/brand/${brand.id}`} key={brand.id} className="no-underline">
+          <div className="mb-8 mt-4">
+            {brands.map((brand) => (
+              <Link
+                to={`/brand/${brand.id}`}
+                key={brand.id}
+                className="no-underline"
+              >
                 <div className="bg-white text-black p-4 rounded-lg flex items-center mb-4 shadow-md w-full">
                   <div className="flex items-center justify-end text-lg font-bold flex-1 mr-4">
                     <FaCheck className="text-yellow-500 mr-2" />
                     <span className="text-right">{brand.name}</span>
                   </div>
                   <img
-                    src={brand.logo}
+                    src={getFullImageUrl(brand.logo)}
                     alt={brand.name}
                     className="w-10 h-10 rounded-full"
                   />
@@ -40,14 +54,20 @@ const SearchResults: React.FC = () => {
             ))}
           </div>
         )}
-
+<span className="mx-4 text-gray-500">Usuarios</span>
+        <div className="flex-grow border-t border-gray-300"></div>
         {users.length > 0 && (
-          <div className="mb-8">
-            {users.map(user => (
-              <div key={user.id} className="bg-white text-black p-4 rounded-lg flex items-center mb-4 shadow-md w-full">
-                <p className="text-lg font-bold text-right flex-1 mr-4">{user.username}</p>
+          <div className="mb-8 mt-4">
+            {users.map((user) => (
+              <div
+                key={user.id}
+                className="bg-white text-black p-4 rounded-lg flex items-center mb-4 shadow-md w-full"
+              >
+                <p className="text-lg font-bold text-right flex-1 mr-4">
+                  {user.username}
+                </p>
                 <img
-                  src={user.profile_pic}
+                  src={getFullImageUrl(user.profile_pic)}
                   alt={user.username}
                   className="w-10 h-10 rounded-full"
                 />
@@ -56,18 +76,25 @@ const SearchResults: React.FC = () => {
           </div>
         )}
 
+        <span className="mx-4 text-gray-500">Productos</span>
+        <div className="flex-grow border-t border-gray-300"></div>
         {products.length > 0 && (
           <div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {products.map(product => (
-                <Link to={`/product/${product.id}`} key={product.id} className="bg-white text-black p-4 rounded-lg relative shadow-md">
-                  {Array.isArray(product.image_urls) && product.image_urls.length > 0 && (
-                    <img
-                      src={product.image_urls[0]}
-                      alt={product.name}
-                      className="w-full h-40 object-contain mb-4"
-                    />
-                  )}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              {products.map((product) => (
+                <Link
+                  to={`/product/${product.id}`}
+                  key={product.id}
+                  className="bg-white text-black p-4 rounded-lg relative shadow-md"
+                >
+                  {Array.isArray(product.image_urls) &&
+                    product.image_urls.length > 0 && (
+                      <img
+                        src={getFullImageUrl(product.image_urls[0])}
+                        alt={product.name}
+                        className="w-full h-40 object-contain mb-4"
+                      />
+                    )}
                   <button className="absolute top-2 right-2 text-white">
                     <FaHeart size={20} />
                   </button>
