@@ -73,8 +73,8 @@ const Saved: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col space-y-2">
+    <div className="container mx-auto px-4 py-8 flex justify-center">
+      <div className="flex flex-col space-y-2 w-2/3">
         {savedProducts.map(product => (
           product && product.images && product.images[0] ? (
             <div key={product.id} className="flex items-center bg-white p-2 rounded-lg">
@@ -87,7 +87,7 @@ const Saved: React.FC = () => {
               </button>
               <div className="flex-1">
                 <h2 className="text-xl font-bold text-right">{product.name}</h2>
-                <p className="text-gray-700 text-right">${product.price}</p>
+                <p className="text-gray-700 text-right">{product.price}</p>
               </div>
             </div>
           ) : null
@@ -95,6 +95,8 @@ const Saved: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default Saved;
+}
+  
+  export default Saved;
+  
+  

@@ -5,7 +5,8 @@ import UserList from './UserList';
 import Publications from './Publications';  // Cambiado de Projects a Publications
 import Marca from './Marca';  // Cambiado de Account a Marca
 import Invitations from './Invitations';  // Nuevo componente para Invitations
-import Scraper from './Scraper'
+import Scraper from './Scraper';
+import Products from './Products';
 
 const ControlPanel: React.FC = () => {
   return (
@@ -129,6 +130,14 @@ const ControlPanel: React.FC = () => {
               </Link>
             </li>
             <li>
+              <Link className="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100" to="/control-panel/products">
+                <svg className="flex-shrink-0 size-4 ..." xmlns="http://www.w3.org/2000/svg" width={24} height={24} >
+                  <path d="M23 3a2 2 0 0 0-2-2H3a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 1 2 2v4" />
+                </svg>
+                Productos
+              </Link>
+            </li>
+            <li>
               <Link
                 className="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-neutral-700 rounded-lg hover:bg-gray-100"
                 to="/control-panel/marca"  // Cambiado de Account a Marca
@@ -193,6 +202,7 @@ const ControlPanel: React.FC = () => {
             <Route path="users" element={<UserList />} />
             <Route path="invitations" element={<Invitations />} />  {/* Nueva ruta para Invitations */}
             <Route path="publications" element={<Publications />} />  {/* Cambiado de Projects a Publications */}
+            <Route path="products" element={<Products />} />
             <Route path="marca" element={<Marca />} />  {/* Cambiado de Account a Marca */}
             <Route path="scraper" element={<Scraper />} />
           </Routes>

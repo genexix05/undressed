@@ -735,7 +735,21 @@ app.get("/api/search", authenticateToken, async (req, res) => {
   }
 });
 
-app.get("/api/products/:id", authenticateToken, async (req, res) => {
+app.get('/api/products', authenticateToken, async (req, res) => {
+  try {
+    const [rows] = await promisePool.query("SELECT * FROM products");
+    const products = rows.map(product => ({
+      ...product,
+      images: product.image_urls ? product.image_urls.split(',') : []
+    }));
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/products/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -749,7 +763,7 @@ app.get("/api/products/:id", authenticateToken, async (req, res) => {
     }
 
     const product = rows[0];
-    product.images = product.image_urls.split(","); // Ajusta esto según cómo almacenes las URLs de las imágenes
+    product.images = product.image_urls ? product.image_urls.split(",") : []; // Ajusta esto según cómo almacenes las URLs de las imágenes
 
     res.json(product);
   } catch (error) {
@@ -757,6 +771,64 @@ app.get("/api/products/:id", authenticateToken, async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+// Actualizar un producto específico por ID
+app.put('/api/products/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { name, price } = req.body;
+
+  try {
+    // Obtener el precio actual del producto
+    const [rows] = await promisePool.query("SELECT price FROM products WHERE id = ?", [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    const oldPrice = rows[0].price;
+    const priceChange = oldPrice !== price;
+
+    // Actualizar el producto
+    const [result] = await promisePool.query(
+      "UPDATE products SET name = ?, price = ? WHERE id = ?",
+      [name, price, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    // Crear una notificación si el precio cambió
+    if (priceChange) {
+      const changeType = price > oldPrice ? 'increased' : 'decreased';
+      const message = `The price of product ${name} has ${changeType}`;
+
+      // Obtener todos los user_id que tienen este producto guardado
+      const [userRows] = await promisePool.query(
+        "SELECT user_id FROM saved_products WHERE product_id = ?",
+        [id]
+      );
+
+      const notifications = userRows.map(userRow => [
+        userRow.user_id, message, req.user.brand_id, changeType
+      ]);
+
+      // Insertar notificaciones para todos los usuarios relevantes
+      await promisePool.query(
+        "INSERT INTO notifications (user_id, message, brand_id, price_change) VALUES ?",
+        [notifications]
+      );
+    }
+
+    res.json({ message: "Product updated successfully" });
+  } catch (error) {
+    console.error('Error updating product:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
 
 app.get("/api/brand/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
@@ -1184,6 +1256,53 @@ app.post("/api/accept-invite", authenticateToken, async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+// Example for an Express.js backend
+
+app.post('/api/notifications/:id/read', authenticateToken, async (req, res) => {
+  const notificationId = req.params.id;
+
+  if (!notificationId) {
+    return res.status(400).json({ error: "Notification ID not found in request" });
+  }
+
+  try {
+    const [results] = await promisePool.execute(
+      'UPDATE notifications SET readed = ? WHERE id = ?',
+      ['yes', notificationId]
+    );
+
+    if (results.affectedRows > 0) {
+      res.sendStatus(200);
+    } else {
+      res.status(404).json({ error: 'Notification not found' });
+    }
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    res.status(500).json({ error: 'An error occurred while marking the notification as read' });
+  }
+});
+
+app.get('/api/notifications/unread/count', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: "User ID not found in request" });
+  }
+
+  try {
+    const [results] = await promisePool.query(
+      'SELECT COUNT(*) as unreadCount FROM notifications WHERE user_id = ? AND readed = ?',
+      [userId, 'no']
+    );
+
+    res.json({ unreadCount: results[0].unreadCount });
+  } catch (error) {
+    console.error('Error fetching unread notifications count:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 // Obtener notificaciones del usuario autenticado
 app.get("/api/notifications", authenticateToken, async (req, res) => {
