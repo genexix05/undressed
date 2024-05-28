@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import useCreatePost from '../hooks/useCreatePost';
-import { useAuth } from '../context/AuthContext';
 
 interface CreatePostFormProps {
   closeModal: () => void;
+}
+
+interface BrandInfo {
+  id: string;
+  name: string;
+  logo: string;
 }
 
 const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
@@ -12,10 +19,32 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
   const [content, setContent] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const { brandId, brandLogo, brandName } = useAuth();
+  const { brandId, accessToken } = useAuth();
   const { createPost, loading, error } = useCreatePost();
   const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [brandInfo, setBrandInfo] = useState<BrandInfo | null>(null);
+
+  useEffect(() => {
+    const fetchBrandInfo = async () => {
+      if (!brandId) {
+        return;
+      }
+
+      try {
+        const response = await axios.get(`http://localhost:3001/api/brandinfo/${brandId}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        setBrandInfo(response.data);
+      } catch (err) {
+        console.error('Error fetching brand info:', err);
+      }
+    };
+
+    if (brandId && accessToken) {
+      fetchBrandInfo();
+    }
+  }, [brandId, accessToken]);
 
   const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -69,6 +98,10 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
     setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
   };
 
+  if (!brandInfo) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-7xl flex">
@@ -102,8 +135,8 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
         </div>
         <div className="flex-1 p-6 bg-gray-100">
           <div className="flex items-center mb-4">
-            {brandLogo && <img src={brandLogo} alt={brandName} className="h-10 w-10 rounded-full mr-2" />}
-            <h2 className="text-xl font-bold text-gray-900">{brandName}</h2>
+            {brandInfo.logo && <img src={`http://localhost:3001/uploads/${brandInfo.logo}`} alt={brandInfo.name} className="h-10 w-10 rounded-full mr-2" />}
+            <h2 className="text-xl font-bold text-gray-900">{brandInfo.name}</h2>
           </div>
           {successMessage && (
             <div className="p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg">

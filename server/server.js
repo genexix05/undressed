@@ -541,7 +541,7 @@ app.get("/api/check-in-brand", authenticateToken, async (req, res) => {
 app.get("/api/get-brand-id", authenticateToken, async (req, res) => {
   try {
     const [rows] = await promisePool.query(
-      `SELECT bu.brand_id, b.name, b.brandLogo
+      `SELECT bu.brand_id, b.name, b.logo
        FROM brand_users bu
        JOIN brands b ON bu.brand_id = b.id
        WHERE bu.user_id = ? LIMIT 1`,

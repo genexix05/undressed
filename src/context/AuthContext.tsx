@@ -89,6 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setBrandLogo(response.data.brandLogo);
       console.log("Brand ID:", response.data.brandId);
       console.log("Brand Name:", response.data.brandName);
+      console.log("Brand Logo:", response.data.brandLogo);
     } catch (error) {
       console.error('Error retrieving brand ID:', error);
       setBrandId(null);
@@ -114,6 +115,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUserRole(null);
       setAccessTokenState(null);
       setBrandId(null);
+      setBrandName(null);
+      setBrandLogo(null);
     }
   };
 
@@ -124,10 +127,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAccessTokenState(null);
     setIsInBrand(false);
     setBrandId(null);
+    setBrandName(null);
+    setBrandLogo(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userRole, accessToken, isInBrand, brandId, brandName, brandLogo,setPosts, posts, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, userRole, accessToken, isInBrand, brandId, brandName, brandLogo, setPosts, posts, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
