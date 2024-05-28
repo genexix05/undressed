@@ -33,16 +33,27 @@ app.use(bodyParser.json());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
-app.get("/start_spider", (req, res) => {
+
+app.get("/start_spider/:brand", (req, res) => {
+  const brand = req.params.brand;
   axios
-    .get("http://localhost:5000/run_spider/stussy")
+    .get(`http://localhost:5000/run_spider/${brand}`)
     .then((flaskRes) => res.send(flaskRes.data))
     .catch((err) =>
-      res
-        .status(500)
-        .send({ message: "Error al iniciar el spider", error: err.message })
+      res.status(500).send({ message: "Error al iniciar el spider", error: err.message })
     );
 });
+
+app.get("/update_spider/:brand", (req, res) => {
+  const brand = req.params.brand;
+  axios
+    .get(`http://localhost:5000/run_spider/${brand}_update`)
+    .then((flaskRes) => res.send(flaskRes.data))
+    .catch((err) =>
+      res.status(500).send({ message: "Error al actualizar el spider", error: err.message })
+    );
+});
+
 
 const pool = mysql.createPool({
   connectionLimit: 10,
@@ -530,19 +541,23 @@ app.get("/api/check-in-brand", authenticateToken, async (req, res) => {
 app.get("/api/get-brand-id", authenticateToken, async (req, res) => {
   try {
     const [rows] = await promisePool.query(
-      "SELECT brand_id FROM brand_users WHERE user_id = ? LIMIT 1",
+      `SELECT bu.brand_id, b.name
+       FROM brand_users bu
+       JOIN brands b ON bu.brand_id = b.id
+       WHERE bu.user_id = ? LIMIT 1`,
       [req.user.userId]
     );
     if (rows.length > 0) {
-      res.json({ brandId: rows[0].brand_id });
+      res.json({ brandId: rows[0].brand_id, brandName: rows[0].name });
     } else {
-      res.json({ brandId: null });
+      res.json({ brandId: null, brandName: null });
     }
   } catch (error) {
     console.error("Error retrieving brand ID:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 // Posts
 
