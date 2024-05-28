@@ -44,7 +44,7 @@ const App: React.FC = () => {
             <Route path="/delete" element={<DeleteAccount />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/brand" element={<BrandPage />} />
-            <Route path="/brand/:id" element={<BrandProfile />} />
+            <Route path="/brand/:brandId" element={<BrandProfile />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/create-brand" element={<BrandPage />} />
             <Route path="/search" element={<SearchResults />} />

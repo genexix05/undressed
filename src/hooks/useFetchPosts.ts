@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth, PostType } from '../context/AuthContext';
 
-const useFetchPosts = (initialPage = 1, limit = 10) => {
+const useFetchPosts = (initialPage = 1, limit = 10, followed = false) => {
   const { accessToken, posts, setPosts } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -12,10 +12,11 @@ const useFetchPosts = (initialPage = 1, limit = 10) => {
   const fetchPosts = useCallback(async (page: number) => {
     setLoading(true);
     setError(null);
+    console.log(`Fetching posts - Page: ${page}, Limit: ${limit}, Followed: ${followed}`); // Agregado para depuración
     try {
       const response = await axios.get('http://localhost:3001/api/posts', {
         headers: { Authorization: `Bearer ${accessToken}` },
-        params: { page, limit },
+        params: { page, limit, followed },
       });
       if (page === 1) {
         setPosts(response.data.posts);
@@ -27,7 +28,7 @@ const useFetchPosts = (initialPage = 1, limit = 10) => {
       setError('Error al obtener las publicaciones');
     }
     setLoading(false);
-  }, [accessToken, limit, setPosts]);
+  }, [accessToken, limit, setPosts, followed]);
 
   useEffect(() => {
     if (accessToken) {

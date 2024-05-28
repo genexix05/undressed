@@ -73,7 +73,7 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
     if (images.length > 0 && brandId) {
       const formData = new FormData();
       formData.append('title', title);
-      formData.append('content', content);
+      formData.append('content', content); // The content will include the new lines
       formData.append('brandId', brandId);
       images.forEach(image => formData.append('images', image));
 
@@ -103,9 +103,9 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-7xl flex">
-        <div className="flex-1 bg-black relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-7xl h-2/4 flex relative">
+        <div className="flex-1 bg-gray-300 relative">
           {images.length > 0 ? (
             <>
               <div className="relative w-full h-full">
@@ -133,7 +133,8 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
             </label>
           )}
         </div>
-        <div className="flex-1 p-6 bg-gray-100">
+        <div className="flex-1 p-6 bg-gray-100 relative">
+          <button onClick={closeModal} className="absolute top-2 right-2 text-gray-900 text-2xl font-bold">&times;</button>
           <div className="flex items-center mb-4">
             {brandInfo.logo && <img src={`http://localhost:3001/uploads/${brandInfo.logo}`} alt={brandInfo.name} className="h-10 w-10 rounded-full mr-2" />}
             <h2 className="text-xl font-bold text-gray-900">{brandInfo.name}</h2>
@@ -149,35 +150,34 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
                 type="text"
                 name="title"
                 id="title"
-                className="bg-white border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5"
+                className="bg-gray-100 border-none outline-none text-gray-900 sm:text-sm rounded-lg focus:ring-gray-500 focus:ring-opacity-50 block w-full p-2.5"
                 placeholder="Título"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
               />
             </div>
-            <hr className="my-4 border-gray-300" />
             <div>
               <textarea
                 name="content"
                 id="content"
-                className="bg-white border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5"
+                className="bg-gray-100 border-none outline-none text-gray-900 sm:text-sm rounded-lg block w-full h-32 p-2.5 resize-none focus:ring-gray-500 focus:ring-opacity-50"
                 placeholder="Contenido"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required
               />
             </div>
+            <hr className="my-4 border-gray-300" />
             <button
               type="submit"
-              className="w-full text-white bg-gray-900 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+              className="w-full text-white bg-gray-900 focus:ring-4 focus:ring-opacity-50 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center"
               disabled={loading}
             >
               {loading ? 'Creando...' : 'Crear Publicación'}
             </button>
             {error && <p className="text-sm font-light text-red-500">{error}</p>}
           </form>
-          <button onClick={closeModal} className="mt-4 text-gray-900">Cerrar</button>
         </div>
       </div>
     </div>

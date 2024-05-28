@@ -6,8 +6,9 @@ import CreatePostForm from '../components/CreatePostForm';
 import { useAuth } from "../context/AuthContext";
 import PostsList from '../components/PostsList';
 import Sidebar from '../components/Sidebar';
-import Notifications from '../components/Notifications'; // Importa el componente de Notificaciones
-import Saved from '../components/Saved'; // Importa el componente de Guardados
+import Notifications from '../components/Notifications'; 
+import Saved from '../components/Saved';
+import PostsListFollowed from '../components/PostsListFollowed';
 
 const HomePage: React.FC = () => {
   const { auth, refreshToken } = useeAuth();
@@ -52,6 +53,7 @@ const MainContent: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<PostsList />} />
+      <Route path="following" element={<PostsListFollowed />} />
       <Route path="notifications" element={<Notifications />} />
       <Route path="saved" element={<Saved />} />
     </Routes>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom'; // Importa useParams
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import Modal from 'react-modal';
@@ -22,7 +23,6 @@ interface Post {
   images: string[];
 }
 
-// Estilos para el modal
 const customStyles = {
   content: {
     top: '50%',
@@ -41,7 +41,8 @@ const customStyles = {
 };
 
 const BrandProfile: React.FC = () => {
-  const { brandId, accessToken } = useAuth();
+  const { accessToken } = useAuth();
+  const { brandId } = useParams<{ brandId: string }>(); // Usa useParams para obtener brandId de la URL
   const [brandInfo, setBrandInfo] = useState<BrandInfo | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);

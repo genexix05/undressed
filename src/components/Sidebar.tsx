@@ -12,6 +12,11 @@ const Sidebar: React.FC = () => {
         </li>
         <span className="block border-t w-full"></span>
         <li className="flex items-center space-x-2">
+          <FaList size={20} />
+          <Link to="/home/following">Siguiendo</Link>
+        </li>
+        <span className="block border-t w-full"></span>
+        <li className="flex items-center space-x-2">
           <FaBell size={20} />
           <Link to="/home/notifications">Notificaciones</Link>
         </li>

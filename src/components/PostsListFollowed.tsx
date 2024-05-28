@@ -3,8 +3,8 @@ import useFetchPosts from '../hooks/useFetchPosts';
 import Post from './Post';
 import { PostType } from '../context/AuthContext';
 
-const PostsList: React.FC = () => {
-  const { posts, loading, error, hasMore, setPage } = useFetchPosts(1, 10, false);
+const PostsListFollowed: React.FC = () => {
+  const { posts, loading, error, hasMore, setPage } = useFetchPosts(1, 10, true);
 
   const observer = useRef<IntersectionObserver | null>(null);
   const lastPostElementRef = useCallback((node: HTMLElement | null) => {
@@ -33,4 +33,4 @@ const PostsList: React.FC = () => {
   );
 };
 
-export default PostsList;
+export default PostsListFollowed;

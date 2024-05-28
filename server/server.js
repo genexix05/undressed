@@ -612,30 +612,62 @@ app.post(
 // Obtener publicaciones
 
 app.get("/api/posts", authenticateToken, async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, followed = false } = req.query;
   const offset = (page - 1) * limit;
+  const userId = req.user.userId;
+
+  console.log(`Fetching posts - Page: ${page}, Limit: ${limit}, Followed: ${followed}`); // Agregado para depuración
 
   try {
-    const [rows] = await promisePool.query(
-      `SELECT 
-        p.id, 
-        p.title, 
-        p.content, 
-        p.created_at as createdAt, 
-        b.name as brandName, 
-        b.logo as brandLogo, 
-        (SELECT GROUP_CONCAT(file_path) FROM post_files WHERE post_id = p.id) as images 
-      FROM 
-        posts p 
-      JOIN 
-        brand_users bu ON p.created_by = bu.user_id 
-      JOIN 
-        brands b ON bu.brand_id = b.id 
-      ORDER BY 
-        p.created_at DESC 
-      LIMIT ? OFFSET ?`,
-      [parseInt(limit), parseInt(offset)]
-    );
+    let query;
+    let queryParams = [parseInt(limit), parseInt(offset)];
+
+    if (followed === 'true') { // Asegurarse de comparar con el string 'true'
+      query = `
+        SELECT 
+          p.id, 
+          p.title, 
+          p.content, 
+          p.created_at as createdAt, 
+          b.name as brandName, 
+          b.logo as brandLogo, 
+          (SELECT GROUP_CONCAT(file_path) FROM post_files WHERE post_id = p.id) as images 
+        FROM 
+          posts p 
+        JOIN 
+          brand_users bu ON p.created_by = bu.user_id 
+        JOIN 
+          brands b ON bu.brand_id = b.id 
+        JOIN 
+          brand_followers bf ON b.id = bf.brand_id 
+        WHERE 
+          bf.user_id = ? 
+        ORDER BY 
+          p.created_at DESC 
+        LIMIT ? OFFSET ?`;
+      queryParams.unshift(userId);
+    } else {
+      query = `
+        SELECT 
+          p.id, 
+          p.title, 
+          p.content, 
+          p.created_at as createdAt, 
+          b.name as brandName, 
+          b.logo as brandLogo, 
+          (SELECT GROUP_CONCAT(file_path) FROM post_files WHERE post_id = p.id) as images 
+        FROM 
+          posts p 
+        JOIN 
+          brand_users bu ON p.created_by = bu.user_id 
+        JOIN 
+          brands b ON bu.brand_id = b.id 
+        ORDER BY 
+          p.created_at DESC 
+        LIMIT ? OFFSET ?`;
+    }
+
+    const [rows] = await promisePool.query(query, queryParams);
 
     const posts = rows.map((row) => ({
       ...row,
@@ -655,6 +687,8 @@ app.get("/api/posts", authenticateToken, async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
 
 // Buscar
 

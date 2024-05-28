@@ -1,7 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { FaHeart, FaShare, FaBookmark, FaCommentDots } from "react-icons/fa";
+import { FaHeart, FaShare } from "react-icons/fa";
 import { PostType, useAuth } from "../context/AuthContext";
 import axios from "axios";
+import Modal from 'react-modal';
+
+const customStyles = {
+  content: {
+    width: 'auto',
+    maxWidth: '800px',
+    maxHeight: '0vh',
+    margin: 'auto',
+    padding: '0',
+    border: 'none',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    display: 'flex',
+  },
+  overlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+};
 
 const Post: React.FC<PostType> = ({
   id,
@@ -16,6 +37,8 @@ const Post: React.FC<PostType> = ({
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isContentTruncated, setIsContentTruncated] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -96,6 +119,14 @@ const Post: React.FC<PostType> = ({
     setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
   };
 
+  const handleReadMore = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="bg-white shadow-md rounded-lg mb-6 p-4 w-3/4 mx-auto" key={id}>
       <div className="flex items-center justify-between">
@@ -142,11 +173,54 @@ const Post: React.FC<PostType> = ({
             <FaShare size={20} />
           </button>
         </div>
-        <div className="mt-4 text-gray-600 text-sm">
-          <p className="font-bold">{title}</p>
-          <p className="text-gray-700 mb-4">{content}</p>
+        <div className="mt-4 text-gray-600 text-sm ">
+          <p className="font-bold text-right">{title}</p>
+          <div className="text-gray-700 mb-4 text-right whitespace-pre-wrap">
+            {isContentTruncated ? `${content.substring(0, 50)}...` : content}
+            {content.length > 100 && (
+              <span
+                onClick={handleReadMore}
+                className="text-blue-500 cursor-pointer"
+              >
+                {isContentTruncated ? " Ver más" : ""}
+              </span>
+            )}
+          </div>
         </div>
       </div>
+      <Modal isOpen={isModalOpen} onRequestClose={closeModal} contentLabel="Post Modal" style={customStyles}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-7xl h-2/3 flex relative mt-5">
+            <div className="flex-1 bg-gray-300 relative">
+              {images && images.length > 0 && (
+                <div className="relative w-full h-full">
+                  <img src={`http://localhost:3001${images[currentImageIndex]}`} alt={`preview ${currentImageIndex}`} className="w-full h-full object-contain"/>
+                  {images.length > 1 && (
+                    <>
+                      <button onClick={handlePrevImage} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white text-2xl bg-black bg-opacity-50 rounded-full p-2">{"<"}</button>
+                      <button onClick={handleNextImage} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white text-2xl bg-black bg-opacity-50 rounded-full p-2">{">"}</button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="flex-1 p-6 bg-gray-100 relative flex flex-col">
+              <button onClick={closeModal} className="absolute top-2 right-2 text-gray-900 text-2xl font-bold">&times;</button>
+              <div className="flex items-center mb-4">
+                <img src={`http://localhost:3001${brandLogo}`} alt={brandName} className="h-10 w-10 rounded-full mr-2" />
+                <h2 className="text-xl font-bold text-gray-900">{brandName}</h2>
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">{title}</h2> {/* Título de la publicación en negrita */}
+              <div className="text-gray-700 mt-2 whitespace-pre-wrap text-sm flex-1 overflow-y-auto"> {/* Contenido con letra más pequeña */}
+                {content}
+              </div>
+              <button onClick={closeModal} className="mt-4 text-white py-2 w-full px-4 uppercase rounded bg-gray-900 hover:bg-gray-800 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5 self-end">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
