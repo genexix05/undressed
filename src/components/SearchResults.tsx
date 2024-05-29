@@ -10,18 +10,24 @@ const SearchResults: React.FC = () => {
 
   const { users, brands, products, loading, error } = useSearch(query);
 
-  const getFullImageUrl = (url: string | null) => {
+  const getUserImageUrl = (url: string | null) => {
+    if (!url) return "";
+    const fileName = url.split("\\").pop();
+    return `http://localhost:3001/uploads/${fileName}`;
+  };
+
+  const getBrandImageUrl = (url: string | null) => {
+    if (!url) return "";
+    const fileName = url.split("\\").pop();
+    return `http://localhost:3001/uploads/${fileName}`;
+  };
+
+  const getProductImageUrl = (url: string | null) => {
     if (!url) return "";
     const correctedUrl = url.replace(/\\/g, "/");
     return correctedUrl.startsWith("..")
       ? `http://localhost:3001/uploads/${correctedUrl.split('/').pop()}`
       : correctedUrl;
-  };
-
-  const getUserImageUrl = (url: string | null) => {
-    if (!url) return "";
-    const fileName = url.split("\\").pop();
-    return `http://localhost:3001/uploads/${fileName}`;
   };
 
   const extractBrandFromUrl = (url: string) => {
@@ -59,7 +65,7 @@ const SearchResults: React.FC = () => {
                     <span className="text-right">{brand.name}</span>
                   </div>
                   <img
-                    src={getFullImageUrl(brand.logo)}
+                    src={getBrandImageUrl(brand.logo)}
                     alt={brand.name}
                     className="w-10 h-10 rounded-full"
                   />
@@ -122,7 +128,7 @@ const SearchResults: React.FC = () => {
                   {Array.isArray(product.image_urls) &&
                     product.image_urls.length > 0 && (
                       <img
-                        src={getFullImageUrl(product.image_urls[0])}
+                        src={getProductImageUrl(product.image_urls[0])}
                         alt={product.name}
                         className="w-full h-40 object-contain mb-4"
                       />
