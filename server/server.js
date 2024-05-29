@@ -631,7 +631,8 @@ app.get("/api/posts", authenticateToken, async (req, res) => {
           p.created_at as createdAt, 
           b.name as brandName, 
           b.logo as brandLogo, 
-          (SELECT GROUP_CONCAT(file_path) FROM post_files WHERE post_id = p.id) as images 
+          (SELECT GROUP_CONCAT(file_path) FROM post_files WHERE post_id = p.id) as images,
+          (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as likes  -- Añadido para contar los likes
         FROM 
           posts p 
         JOIN 
@@ -655,7 +656,8 @@ app.get("/api/posts", authenticateToken, async (req, res) => {
           p.created_at as createdAt, 
           b.name as brandName, 
           b.logo as brandLogo, 
-          (SELECT GROUP_CONCAT(file_path) FROM post_files WHERE post_id = p.id) as images 
+          (SELECT GROUP_CONCAT(file_path) FROM post_files WHERE post_id = p.id) as images,
+          (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as likes  -- Añadido para contar los likes
         FROM 
           posts p 
         JOIN 
@@ -688,6 +690,43 @@ app.get("/api/posts", authenticateToken, async (req, res) => {
   }
 });
 
+app.put('/api/posts/:id', authenticateToken, upload.array('images', 4), async (req, res) => {
+  const { id } = req.params;
+  const { title, content } = req.body;
+  const files = req.files;
+
+  try {
+    // Actualizar el título y el contenido de la publicación
+    await promisePool.query('UPDATE posts SET title = ?, content = ? WHERE id = ?', [title, content, id]);
+
+    let updatedImages = [];
+
+    if (files && files.length > 0) {
+      // Eliminar las imágenes existentes
+      await promisePool.query('DELETE FROM post_files WHERE post_id = ?', [id]);
+
+      // Insertar las nuevas imágenes
+      const fileInsertQueries = files.map((file) => {
+        const filePath = `/uploads/${path.basename(file.path)}`;
+        updatedImages.push(`http://localhost:3001${filePath}`);
+        return promisePool.query('INSERT INTO post_files (post_id, file_path) VALUES (?, ?)', [id, filePath]);
+      });
+      await Promise.all(fileInsertQueries);
+    } else {
+      // Obtener las imágenes existentes si no se suben nuevas imágenes
+      const [rows] = await promisePool.query('SELECT file_path FROM post_files WHERE post_id = ?', [id]);
+      updatedImages = rows.map(row => `http://localhost:3001${row.file_path}`);
+    }
+
+    res.send({
+      message: 'Publicación actualizada correctamente.',
+      updatedImages: updatedImages,
+    });
+  } catch (error) {
+    console.error('Error al actualizar la publicación:', error);
+    res.status(500).send(`Error al actualizar la publicación: ${error.message}`);
+  }
+});
 
 
 // Buscar
@@ -948,14 +987,14 @@ app.get("/api/brand/:brandId/stats", authenticateToken, async (req, res) => {
       "SELECT COUNT(*) as likes FROM post_likes WHERE post_id IN (SELECT id FROM posts WHERE brand_id = ?)",
       [brandId]
     );
-    const likes = likesResult[0].likes;
+    const likes = likesResult[0]?.likes || 0;
 
     // Obtén el conteo de productos guardados
     const [savedItemsResult] = await promisePool.query(
       "SELECT COUNT(*) as savedItems FROM saved_products WHERE product_id IN (SELECT id FROM products WHERE id IN (SELECT product_id FROM post_files WHERE post_id IN (SELECT id FROM posts WHERE brand_id = ?)))",
       [brandId]
     );
-    const savedItems = savedItemsResult[0].savedItems;
+    const savedItems = savedItemsResult[0]?.savedItems || 0;
 
     // Obtén las visitas de los últimos 7 días
     const [last7DaysVisitsResult] = await promisePool.query(
@@ -966,7 +1005,9 @@ app.get("/api/brand/:brandId/stats", authenticateToken, async (req, res) => {
        ORDER BY date`,
       [brandId]
     );
-    const last7DaysVisits = last7DaysVisitsResult;
+
+    // Transformar los resultados en un formato adecuado
+    const last7DaysVisits = last7DaysVisitsResult.map(row => ({ date: row.date, count: row.count }));
 
     // Obtén las visitas de los últimos 30 días
     const [last30DaysVisitsResult] = await promisePool.query(
@@ -977,7 +1018,9 @@ app.get("/api/brand/:brandId/stats", authenticateToken, async (req, res) => {
        ORDER BY date`,
       [brandId]
     );
-    const last30DaysVisits = last30DaysVisitsResult;
+
+    // Transformar los resultados en un formato adecuado
+    const last30DaysVisits = last30DaysVisitsResult.map(row => ({ date: row.date, count: row.count }));
 
     // Obtén el total de visitas
     const [totalVisitsResult] = await promisePool.query(
@@ -986,7 +1029,7 @@ app.get("/api/brand/:brandId/stats", authenticateToken, async (req, res) => {
        WHERE brand_id = ?`,
       [brandId]
     );
-    const totalVisits = totalVisitsResult[0].totalVisits;
+    const totalVisits = totalVisitsResult[0]?.totalVisits || 0;
 
     res.json({
       likes,

@@ -91,10 +91,26 @@ const BrandProfile: React.FC = () => {
       }
     };
 
+    const recordProfileView = async () => {
+      try {
+        await axios.post(
+          'http://localhost:3001/api/profile-view',
+          { brandId },
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+      } catch (err) {
+        console.error('Error recording profile view:', err);
+        setError('An error occurred while recording profile view');
+      }
+    };
+
     if (brandId && accessToken) {
       fetchBrandInfo();
       fetchPosts();
       checkIfFollowing();
+      recordProfileView();
     }
   }, [brandId, accessToken]);
 

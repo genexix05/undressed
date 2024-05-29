@@ -6,9 +6,17 @@ import { Chart, CategoryScale, LinearScale, PointElement, LineElement, BarElemen
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
+interface Stats {
+  likes: number;
+  savedItems: number;
+  totalVisits: number;
+  last7DaysVisits: { date: string, count: number }[];
+  last30DaysVisits: { date: string, count: number }[];
+}
+
 const Dashboard: React.FC = () => {
   const { brandId, accessToken } = useAuth();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<Stats>({
     likes: 0,
     savedItems: 0,
     totalVisits: 0,
@@ -18,12 +26,16 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (!brandId) return;
+      if (!brandId) {
+        console.error('brandId is null or undefined');
+        return;
+      }
 
       try {
         const response = await axios.get(`http://localhost:3001/api/brand/${brandId}/stats`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
+        console.log('API Response:', response.data);
         setStats(response.data);
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -34,11 +46,11 @@ const Dashboard: React.FC = () => {
   }, [brandId, accessToken]);
 
   const visits7DaysData = {
-    labels: stats.last7DaysVisits?.map((visit: any) => visit.date) || [],
+    labels: stats.last7DaysVisits.map(visit => visit.date),
     datasets: [
       {
         label: 'Visitas en los últimos 7 días',
-        data: stats.last7DaysVisits?.map((visit: any) => visit.count) || [],
+        data: stats.last7DaysVisits.map(visit => visit.count),
         borderColor: '#0d6efd',
         backgroundColor: 'rgba(13, 110, 253, 0.5)',
         fill: true,
@@ -47,11 +59,11 @@ const Dashboard: React.FC = () => {
   };
 
   const visits30DaysData = {
-    labels: stats.last30DaysVisits?.map((visit: any) => visit.date) || [],
+    labels: stats.last30DaysVisits.map(visit => visit.date),
     datasets: [
       {
         label: 'Visitas en los últimos 30 días',
-        data: stats.last30DaysVisits?.map((visit: any) => visit.count) || [],
+        data: stats.last30DaysVisits.map(visit => visit.count),
         borderColor: '#198754',
         backgroundColor: 'rgba(25, 135, 84, 0.5)',
         fill: true,
@@ -64,15 +76,15 @@ const Dashboard: React.FC = () => {
       <div className="flex justify-center gap-4 mb-8">
         <div className="bg-white shadow-md rounded-lg p-4 text-center w-1/3">
           <h3 className="text-xl font-bold">Likes</h3>
-          <p className="text-3xl">{stats.likes?.toLocaleString() || 0}</p>
+          <p className="text-3xl">{stats.likes.toLocaleString()}</p>
         </div>
         <div className="bg-white shadow-md rounded-lg p-4 text-center w-1/3">
           <h3 className="text-xl font-bold">Productos Guardados</h3>
-          <p className="text-3xl">{stats.savedItems?.toLocaleString() || 0}</p>
+          <p className="text-3xl">{stats.savedItems.toLocaleString()}</p>
         </div>
         <div className="bg-white shadow-md rounded-lg p-4 text-center w-1/3">
           <h3 className="text-xl font-bold">Visitas Totales</h3>
-          <p className="text-3xl">{stats.totalVisits?.toLocaleString() || 0}</p>
+          <p className="text-3xl">{stats.totalVisits.toLocaleString()}</p>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
