@@ -1069,6 +1069,73 @@ app.get("/api/brand/:brandId/stats", authenticateToken, async (req, res) => {
   }
 });
 
+app.get("/api/admin/stats", authenticateToken, async (req, res) => {
+  try {
+    // Obtén el conteo total de usuarios
+    const [totalUsersResult] = await promisePool.query(
+      "SELECT COUNT(*) as totalUsers FROM users"
+    );
+    const totalUsers = totalUsersResult[0]?.totalUsers || 0;
+
+    // Obtén las visitas de los últimos 7 días
+    const [last7DaysVisitsResult] = await promisePool.query(
+      `SELECT DATE(viewed_at) as date, COUNT(*) as count 
+       FROM page_views 
+       WHERE viewed_at >= CURDATE() - INTERVAL 7 DAY 
+       GROUP BY DATE(viewed_at) 
+       ORDER BY date`
+    );
+
+    // Transformar los resultados en un formato adecuado
+    const last7DaysVisits = last7DaysVisitsResult.map(row => ({ date: row.date, count: row.count }));
+
+    // Obtén las visitas de los últimos 30 días
+    const [last30DaysVisitsResult] = await promisePool.query(
+      `SELECT DATE(viewed_at) as date, COUNT(*) as count 
+       FROM page_views 
+       WHERE viewed_at >= CURDATE() - INTERVAL 30 DAY 
+       GROUP BY DATE(viewed_at) 
+       ORDER BY date`
+    );
+
+    // Transformar los resultados en un formato adecuado
+    const last30DaysVisits = last30DaysVisitsResult.map(row => ({ date: row.date, count: row.count }));
+
+    // Obtén el total de visitas
+    const [totalVisitsResult] = await promisePool.query(
+      `SELECT COUNT(*) as totalVisits 
+       FROM page_views`
+    );
+    const totalVisits = totalVisitsResult[0]?.totalVisits || 0;
+
+    res.json({
+      totalUsers,
+      last7DaysVisits,
+      last30DaysVisits,
+      totalVisits,
+    });
+  } catch (error) {
+    console.error("Error fetching stats:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/api/page-view", authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    await promisePool.query(
+      "INSERT INTO page_views (user_id) VALUES (?)",
+      [userId]
+    );
+    res.status(200).json({ message: "Page view recorded successfully" });
+  } catch (error) {
+    console.error("Error recording page view:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 app.get("/api/users", authenticateToken, async (req, res) => {
   const { brandId } = req.query;
 
@@ -1090,6 +1157,24 @@ app.get("/api/users", authenticateToken, async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+app.put("/api/users/:userId", authenticateToken, async (req, res) => {
+  const { userId } = req.params;
+  const { role } = req.body;
+
+  try {
+    await promisePool.query(
+      "UPDATE brand_users SET role = ? WHERE user_id = ?",
+      [role, userId]
+    );
+    res.status(200).send("User role updated");
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    res.status(500).send("Error updating user role");
+  }
+});
+
+
 app.get("/api/brandinfo/:brandId", authenticateToken, async (req, res) => {
   const { brandId } = req.params;
 

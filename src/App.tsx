@@ -18,6 +18,7 @@ import SearchResults from "./components/SearchResults";
 import ProductDetail from "./components/ProductDetail";
 import BrandProfile from "./components/BrandProfile";
 import UserProfile from "./components/UserProfile";
+import AdminPanel from "./components/AdminPanel";
 import { AuthProvider } from "./context/AuthContext";
 
 const App: React.FC = () => {
@@ -52,6 +53,9 @@ const App: React.FC = () => {
             <Route path="/search" element={<SearchResults />} />
             <Route element={<ProtectedRoute role="brand" />}>
               <Route path="/control-panel/*" element={<ControlPanel />} />
+            </Route>
+            <Route element={<ProtectedRoute role="admin" />}>
+              <Route path="/admin-panel/*" element={<AdminPanel />} />
             </Route>
           </Route>
         </Routes>

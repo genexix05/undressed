@@ -1,19 +1,16 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
-import Dashboard from './Dashboard';
-import UserList from './UserList';
-import Publications from './Publications';  // Cambiado de Projects a Publications
-import Marca from './Marca';  // Cambiado de Account a Marca
-import Invitations from './Invitations';  // Nuevo componente para Invitations
+import AdminDashboard from './AdminDashboard';
+import AdminUserList from './AdminUserList';
+import AdminMarca from './AdminMarcas';
 import Scraper from './Scraper';
-import Products from './Products';
 
-const ControlPanel: React.FC = () => {
+const AdminPanel: React.FC = () => {
   return (
-    <div className="flex"> 
+    <div className="flex">
       {/* Sidebar */}
       <div
-        id="application-sidebar"
+        id="admin-sidebar"
         className="hs-overlay [--auto-close:lg]
         hs-overlay-open:translate-x-0
         -translate-x-full transition-all duration-300 transform
@@ -39,7 +36,7 @@ const ControlPanel: React.FC = () => {
             <li>
               <Link
                 className="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-neutral-700 rounded-lg hover:bg-gray-100"
-                to="/control-panel/dashboard"
+                to="/admin-panel/dashboard"
               >
                 <svg
                   className="flex-shrink-0 size-4"
@@ -62,7 +59,7 @@ const ControlPanel: React.FC = () => {
             <li>
               <Link
                 className="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-neutral-700 rounded-lg hover:bg-gray-100"
-                to="/control-panel/users"
+                to="/admin-panel/users"
               >
                 <svg
                   className="flex-shrink-0 size-4"
@@ -87,60 +84,7 @@ const ControlPanel: React.FC = () => {
             <li>
               <Link
                 className="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-neutral-700 rounded-lg hover:bg-gray-100"
-                to="/control-panel/invitations"  // Nuevo link para Invitations
-              >
-                <svg
-                  className="flex-shrink-0 size-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width={24}
-                  height={24}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M22 12l-4-4v3H3v2h15v3l4-4z" />
-                </svg>
-                Invitations
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-neutral-700 rounded-lg hover:bg-gray-100"
-                to="/control-panel/publications"  // Cambiado de Projects a Publications
-              >
-                <svg
-                  className="flex-shrink-0 size-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width={24}
-                  height={24}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect width={20} height={14} x={2} y={7} rx={2} ry={2} />
-                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                </svg>
-                Publications
-              </Link>
-            </li>
-            <li>
-              <Link className="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100" to="/control-panel/products">
-                <svg className="flex-shrink-0 size-4 ..." xmlns="http://www.w3.org/2000/svg" width={24} height={24} >
-                  <path d="M23 3a2 2 0 0 0-2-2H3a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 1 2 2v4" />
-                </svg>
-                Productos
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-neutral-700 rounded-lg hover:bg-gray-100"
-                to="/control-panel/marca"  // Cambiado de Account a Marca
+                to="/admin-panel/marcas"
               >
                 <svg
                   className="flex-shrink-0 size-4"
@@ -166,13 +110,13 @@ const ControlPanel: React.FC = () => {
                   <path d="m14.3 16.6 1-.4" />
                   <path d="m20.7 13.8 1-.4" />
                 </svg>
-                Marca
+                Marcas
               </Link>
             </li>
             <li>
               <Link
                 className="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-neutral-700 rounded-lg hover:bg-gray-100"
-                to="/control-panel/scraper"
+                to="/admin-panel/scraper"
               >
                 <svg
                   className="flex-shrink-0 size-4"
@@ -196,14 +140,12 @@ const ControlPanel: React.FC = () => {
       </div>
       {/* Content */}
       <div className="flex-1 lg:ml-[260px]">
-        <div className="px-4 sm:px-6 md:px-8"> 
+        <div className="px-4 sm:px-6 md:px-8">
           <Routes>
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="users" element={<UserList />} />
-            <Route path="invitations" element={<Invitations />} />  {/* Nueva ruta para Invitations */}
-            <Route path="publications" element={<Publications />} />  {/* Cambiado de Projects a Publications */}
-            <Route path="products" element={<Products />} />
-            <Route path="marca" element={<Marca />} />  {/* Cambiado de Account a Marca */}
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUserList />} />
+            <Route path="marca" element={<AdminMarca />} />
+            <Route path="scraper" element={<Scraper />} />
           </Routes>
         </div>
       </div>
@@ -212,4 +154,4 @@ const ControlPanel: React.FC = () => {
   );
 };
 
-export default ControlPanel;
+export default AdminPanel;

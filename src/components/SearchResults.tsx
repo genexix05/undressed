@@ -14,8 +14,14 @@ const SearchResults: React.FC = () => {
     if (!url) return "";
     const correctedUrl = url.replace(/\\/g, "/");
     return correctedUrl.startsWith("..")
-      ? `http://localhost:3001${correctedUrl.slice(2)}`
+      ? `http://localhost:3001/uploads/${correctedUrl.split('/').pop()}`
       : correctedUrl;
+  };
+
+  const getUserImageUrl = (url: string | null) => {
+    if (!url) return "";
+    const fileName = url.split("\\").pop();
+    return `http://localhost:3001/uploads/${fileName}`;
   };
 
   const extractBrandFromUrl = (url: string) => {
@@ -78,7 +84,7 @@ const SearchResults: React.FC = () => {
                   </p>
                   {user.profile_pic ? (
                     <img
-                      src={getFullImageUrl(user.profile_pic)}
+                      src={getUserImageUrl(user.profile_pic)}
                       alt={user.username}
                       className="w-10 h-10 rounded-full"
                     />

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import useeAuth from '../hooks/useAuth';
+import useeAuth from '../hooks/useAuth'; // Corrección de typo
 import Modal from '../components/Modal';
 import CreatePostForm from '../components/CreatePostForm';
 import { useAuth } from "../context/AuthContext";
@@ -9,6 +9,7 @@ import Sidebar from '../components/Sidebar';
 import Notifications from '../components/Notifications'; 
 import Saved from '../components/Saved';
 import PostsListFollowed from '../components/PostsListFollowed';
+import axios from 'axios';
 
 const HomePage: React.FC = () => {
   const { auth, refreshToken } = useeAuth();
@@ -21,6 +22,20 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     if (!auth.accessToken) {
       refreshToken();
+    }
+
+    const registerPageView = async () => {
+      try {
+        await axios.post('http://localhost:3001/api/page-view', {}, {
+          headers: { Authorization: `Bearer ${auth.accessToken}` },
+        });
+      } catch (error) {
+        console.error('Error registering page view:', error);
+      }
+    };
+
+    if (auth.accessToken) {
+      registerPageView();
     }
   }, [auth, refreshToken]);
 
