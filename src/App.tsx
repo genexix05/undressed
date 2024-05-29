@@ -17,6 +17,7 @@ import Header from "./components/Header";
 import SearchResults from "./components/SearchResults";
 import ProductDetail from "./components/ProductDetail";
 import BrandProfile from "./components/BrandProfile";
+import UserProfile from "./components/UserProfile";
 import { AuthProvider } from "./context/AuthContext";
 
 const App: React.FC = () => {
@@ -45,6 +46,7 @@ const App: React.FC = () => {
             <Route path="/account" element={<AccountPage />} />
             <Route path="/brand" element={<BrandPage />} />
             <Route path="/brand/:brandId" element={<BrandProfile />} />
+            <Route path="/user/:userId" element={<UserProfile />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/create-brand" element={<BrandPage />} />
             <Route path="/search" element={<SearchResults />} />

@@ -6,6 +6,10 @@ interface ProfileViewsStatsProps {
   brandId: string;
 }
 
+interface ProfileViewsResponse {
+  views: number;
+}
+
 const ProfileViewsStats: React.FC<ProfileViewsStatsProps> = ({ brandId }) => {
   const { accessToken } = useAuth();
   const [views, setViews] = useState<number | null>(null);
@@ -13,7 +17,7 @@ const ProfileViewsStats: React.FC<ProfileViewsStatsProps> = ({ brandId }) => {
   useEffect(() => {
     const fetchProfileViews = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/api/profile-views/${brandId}`, {
+        const response = await axios.get<ProfileViewsResponse>(`http://localhost:3001/api/profile-views/${brandId}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         setViews(response.data.views);

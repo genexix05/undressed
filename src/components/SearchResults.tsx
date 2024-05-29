@@ -12,10 +12,18 @@ const SearchResults: React.FC = () => {
 
   const getFullImageUrl = (url: string | null) => {
     if (!url) return "";
-    const correctedUrl = url.replace(/\\/g, "/"); // Reemplazar las barras invertidas por barras normales
+    const correctedUrl = url.replace(/\\/g, "/");
     return correctedUrl.startsWith("..")
       ? `http://localhost:3001${correctedUrl.slice(2)}`
       : correctedUrl;
+  };
+
+  const extractBrandFromUrl = (url: string) => {
+    if (!url) return "Unknown Brand";
+    const match = url.match(/:\/\/(?:www\.)?(?:[^\.]+\.)?([^\.]+)\.[^\/]+/);
+    return match
+      ? match[1].charAt(0).toUpperCase() + match[1].slice(1)
+      : "Unknown Brand";
   };
 
   if (loading) {
@@ -29,7 +37,7 @@ const SearchResults: React.FC = () => {
   return (
     <div className="flex justify-center p-4 bg-gray-100">
       <div className="max-w-4xl w-full">
-      <span className="mx-4 text-gray-500">Marcas</span>
+        <span className="mx-4 text-gray-500">Marcas</span>
         <div className="flex-grow border-t border-gray-300"></div>
         {brands.length > 0 && (
           <div className="mb-8 mt-4">
@@ -54,24 +62,42 @@ const SearchResults: React.FC = () => {
             ))}
           </div>
         )}
-<span className="mx-4 text-gray-500">Usuarios</span>
+        <span className="mx-4 text-gray-500">Usuarios</span>
         <div className="flex-grow border-t border-gray-300"></div>
         {users.length > 0 && (
           <div className="mb-8 mt-4">
             {users.map((user) => (
-              <div
+              <Link
+                to={`/user/${user.id}`}
                 key={user.id}
-                className="bg-white text-black p-4 rounded-lg flex items-center mb-4 shadow-md w-full"
+                className="no-underline"
               >
-                <p className="text-lg font-bold text-right flex-1 mr-4">
-                  {user.username}
-                </p>
-                <img
-                  src={getFullImageUrl(user.profile_pic)}
-                  alt={user.username}
-                  className="w-10 h-10 rounded-full"
-                />
-              </div>
+                <div className="bg-white text-black p-4 rounded-lg flex items-center mb-4 shadow-md w-full">
+                  <p className="text-lg font-bold text-right flex-1 mr-4">
+                    {user.username}
+                  </p>
+                  {user.profile_pic ? (
+                    <img
+                      src={getFullImageUrl(user.profile_pic)}
+                      alt={user.username}
+                      className="w-10 h-10 rounded-full"
+                    />
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-10 w-10 text-gray-500"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </div>
+              </Link>
             ))}
           </div>
         )}
@@ -100,7 +126,9 @@ const SearchResults: React.FC = () => {
                   </button>
                   <div className="text-right">
                     <p className="text-lg font-bold">{product.name}</p>
-                    <p className="text-gray-400">Stüssy</p>
+                    <p className="text-gray-400">
+                      {extractBrandFromUrl(product.url)}
+                    </p>
                     <p className="text-2xl font-bold">{product.price} €</p>
                   </div>
                 </Link>

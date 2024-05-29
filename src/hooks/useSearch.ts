@@ -19,7 +19,9 @@ interface ProductType {
   name: string;
   image_urls: string;
   price: number;
+  url: string;
 }
+
 
 const useSearch = (query: string) => {
   const { accessToken } = useAuth();

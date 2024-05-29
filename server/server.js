@@ -713,7 +713,7 @@ app.get("/api/search", authenticateToken, async (req, res) => {
     );
 
     const [products] = await promisePool.query(
-      "SELECT id, name, image_urls, price FROM products WHERE LOWER(name) LIKE ?",
+      "SELECT id, name, image_urls, price, url FROM products WHERE LOWER(name) LIKE ?",
       [lowerCaseQuery]
     );
 
@@ -1407,6 +1407,44 @@ app.get("/api/saved-products", authenticateToken, async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+app.get('/api/userinfo/:userId', authenticateToken, async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const [userInfo] = await promisePool.query('SELECT id, username, profile_pic FROM users WHERE id = ?', [userId]);
+
+    if (userInfo.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(userInfo[0]);
+  } catch (error) {
+    console.error('Error fetching user info:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/userproducts/:userId', authenticateToken, async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const [products] = await promisePool.query(`
+      SELECT p.id, p.name, p.price, p.image_urls, p.url
+      FROM saved_products sp
+      JOIN products p ON sp.product_id = p.id
+      WHERE sp.user_id = ?`, [userId]);
+
+    res.json(products.map(product => ({
+      ...product,
+      image_urls: product.image_urls ? product.image_urls.split(',').map(url => url.trim()) : [],
+    })));
+  } catch (error) {
+    console.error('Error fetching user products:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 app.listen(port, () => {
   console.log(`Node server listening at http://localhost:${port}`);
