@@ -16,6 +16,7 @@ const Publications: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);  // Inicializa posts como un array vacío
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [modalIsOpen, setModalIsOpen] = useState<boolean>(false);
+  const [deleteModalIsOpen, setDeleteModalIsOpen] = useState<boolean>(false);
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
@@ -23,6 +24,7 @@ const Publications: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [postToDelete, setPostToDelete] = useState<Post | null>(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -60,6 +62,16 @@ const Publications: React.FC = () => {
     setNewImages([]);
     setSuccessMessage('');
     setError('');
+  };
+
+  const openDeleteModal = (post: Post) => {
+    setPostToDelete(post);
+    setDeleteModalIsOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalIsOpen(false);
+    setPostToDelete(null);
   };
 
   const handlePrevImage = () => {
@@ -122,6 +134,22 @@ const Publications: React.FC = () => {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (!postToDelete) return;
+
+    try {
+      await axios.delete(`http://localhost:3001/api/posts/${postToDelete.id}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+
+      setPosts(posts.filter(post => post.id !== postToDelete.id));
+      setDeleteModalIsOpen(false);
+    } catch (err) {
+      console.error('Error deleting post:', err);
+      setError('Error al borrar la publicación.');
+    }
+  };
+
   // Asegurémonos de que las URLs de las imágenes sean completas
   const totalImages = selectedPost
     ? [
@@ -145,7 +173,7 @@ const Publications: React.FC = () => {
       <h1 className="text-2xl font-bold mb-4">Publications</h1>
       <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pr-10 pl-10">
         {posts.map(post => (
-          <div key={post.id} className="relative cursor-pointer" onClick={() => openModal(post)}>
+          <div key={post.id} className="relative cursor-pointer group" onClick={() => openModal(post)}>
             <div className="relative w-full h-64 overflow-hidden">
               <img src={post.images[0].startsWith('http://localhost:3001') ? post.images[0] : `http://localhost:3001${post.images[0]}`} alt={`Post ${post.id}`} className="w-full h-full object-contain" />
               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -154,6 +182,12 @@ const Publications: React.FC = () => {
               <div className="absolute bottom-2 right-2 bg-gray-800 bg-opacity-75 rounded-full px-3 py-1 text-white text-sm">
                 Likes: {post.likes}
               </div>
+              <button
+                className="absolute top-2 right-2 text-white text-xl bg-black bg-opacity-50 rounded-full p-2 hidden group-hover:block"
+                onClick={(e) => { e.stopPropagation(); openDeleteModal(post); }}
+              >
+                🗑️
+              </button>
             </div>
           </div>
         ))}
@@ -231,6 +265,19 @@ const Publications: React.FC = () => {
                     </div>
                   )}
                 </form>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+      {postToDelete && (
+        <Modal isOpen={deleteModalIsOpen} onRequestClose={closeDeleteModal} contentLabel="Delete Confirmation Modal" style={customStyles}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-bold mb-4">¿Seguro que quieres borrar esta publicación?</h2>
+              <div className="flex justify-end space-x-4">
+                <button onClick={closeDeleteModal} className="px-4 py-2 bg-gray-500 text-white rounded">No</button>
+                <button onClick={handleDeletePost} className="px-4 py-2 bg-red-600 text-white rounded">Sí</button>
               </div>
             </div>
           </div>

@@ -7,6 +7,7 @@ interface Product {
   name: string;
   url: string;
   price: string;
+  images: string[]; // Cambiado a una lista de URLs de imágenes
 }
 
 const Products: React.FC = () => {
@@ -51,6 +52,23 @@ const Products: React.FC = () => {
     }
   };
 
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await axios.delete(`http://localhost:3001/api/products/${id}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      setProducts(prevProducts => prevProducts.filter(product => product.id !== id));
+      console.log('Product deleted successfully:', response.data);
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+        console.error('Response headers:', error.response.headers);
+      }
+    }
+  };
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Productos de {brandName}</h1>
@@ -60,6 +78,7 @@ const Products: React.FC = () => {
             <th className="py-2 px-4 border-b">ID</th>
             <th className="py-2 px-4 border-b">Nombre</th>
             <th className="py-2 px-4 border-b">Precio</th>
+            <th className="py-2 px-4 border-b">Imagen</th>
             <th className="py-2 px-4 border-b">Acciones</th>
           </tr>
         </thead>
@@ -92,6 +111,11 @@ const Products: React.FC = () => {
                 )}
               </td>
               <td className="py-2 px-4 border-b">
+                {product.images.length > 0 && (
+                  <img src={product.images[0]} alt={product.name} className="w-16 h-16 object-cover" />
+                )}
+              </td>
+              <td className="py-2 px-4 border-b">
                 {editingProduct?.id === product.id ? (
                   <button onClick={handleSave} className="bg-blue-500 text-white px-2 py-1 rounded">
                     Guardar
@@ -101,6 +125,9 @@ const Products: React.FC = () => {
                     Editar
                   </button>
                 )}
+                <button onClick={() => handleDelete(product.id)} className="bg-red-500 text-white px-2 py-1 rounded ml-2">
+                  Eliminar
+                </button>
               </td>
             </tr>
           ))}

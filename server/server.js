@@ -728,6 +728,20 @@ app.put('/api/posts/:id', authenticateToken, upload.array('images', 4), async (r
   }
 });
 
+app.delete('/api/posts/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await promisePool.query('DELETE FROM posts WHERE id = ?', [id]);
+    await promisePool.query('DELETE FROM post_files WHERE post_id = ?', [id]);
+    res.status(200).send('Publicación eliminada correctamente');
+  } catch (error) {
+    console.error('Error al eliminar la publicación:', error);
+    res.status(500).send('Error al eliminar la publicación');
+  }
+});
+
+
 
 // Buscar
 
@@ -866,8 +880,19 @@ app.put('/api/products/:id', authenticateToken, async (req, res) => {
   }
 });
 
-
-
+app.delete('/api/products/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [result] = await promisePool.query("DELETE FROM products WHERE id = ?", [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    res.status(200).json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 app.get("/api/brand/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
