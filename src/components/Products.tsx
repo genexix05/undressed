@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import Modal from 'react-modal';
 import { useAuth } from '../context/AuthContext';  // Asegúrate de que la ruta es correcta
 
 interface Product {
@@ -14,6 +15,8 @@ const Products: React.FC = () => {
   const { brandName, accessToken } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
+  const [deleteModalIsOpen, setDeleteModalIsOpen] = useState<boolean>(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -52,14 +55,27 @@ const Products: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const openDeleteModal = (product: Product) => {
+    setProductToDelete(product);
+    setDeleteModalIsOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalIsOpen(false);
+    setProductToDelete(null);
+  };
+
+  const handleDelete = async () => {
+    if (!productToDelete || !accessToken) return;
+
     try {
-      const response = await axios.delete(`http://localhost:3001/api/products/${id}`, {
+      await axios.delete(`http://localhost:3001/api/products/${productToDelete.id}`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
-      setProducts(prevProducts => prevProducts.filter(product => product.id !== id));
-      console.log('Product deleted successfully:', response.data);
-    } catch (error) {
+      setProducts(prevProducts => prevProducts.filter(product => product.id !== productToDelete.id));
+      closeDeleteModal();
+    } catch (err) {
+      const error = err as AxiosError;
       console.error('Error deleting product:', error);
       if (error.response) {
         console.error('Response data:', error.response.data);
@@ -125,7 +141,7 @@ const Products: React.FC = () => {
                     Editar
                   </button>
                 )}
-                <button onClick={() => handleDelete(product.id)} className="bg-red-500 text-white px-2 py-1 rounded ml-2">
+                <button onClick={() => openDeleteModal(product)} className="bg-red-500 text-white px-2 py-1 rounded ml-2">
                   Eliminar
                 </button>
               </td>
@@ -133,6 +149,23 @@ const Products: React.FC = () => {
           ))}
         </tbody>
       </table>
+      {productToDelete && (
+        <Modal
+          isOpen={deleteModalIsOpen}
+          onRequestClose={closeDeleteModal}
+          contentLabel="Delete Confirmation Modal"
+        >
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-bold mb-4">¿Seguro que quieres borrar este producto?</h2>
+              <div className="flex justify-end space-x-4">
+                <button onClick={closeDeleteModal} className="px-4 py-2 bg-gray-500 text-white rounded">No</button>
+                <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded">Sí</button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
