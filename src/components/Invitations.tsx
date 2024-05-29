@@ -86,25 +86,6 @@ const Invitations: React.FC = () => {
           Send
         </button>
       </div>
-      <div className="mb-4">
-        <button
-          onClick={handleGenerateInviteLink}
-          className="px-4 py-2 bg-green-500 text-white rounded"
-        >
-          Generate Invitation Link
-        </button>
-        {inviteLink && (
-          <div className="mt-2">
-            <label className="block text-gray-700">Invite Link</label>
-            <input
-              type="text"
-              className="mt-1 p-2 border border-gray-300 rounded w-full"
-              value={inviteLink}
-              readOnly
-            />
-          </div>
-        )}
-      </div>
       {message && (
         <div className="mt-4 p-4 bg-gray-100 border border-gray-200 rounded">
           {message}

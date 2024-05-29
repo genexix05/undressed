@@ -741,6 +741,55 @@ app.delete('/api/posts/:id', authenticateToken, async (req, res) => {
   }
 });
 
+app.get("/api/brand-posts/:brandId", authenticateToken, async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+  const { brandId } = req.params;
+  const offset = (page - 1) * limit;
+  const userId = req.user.userId;
+
+  console.log(`Fetching posts for brand - Brand ID: ${brandId}, Page: ${page}, Limit: ${limit}`);
+
+  try {
+    const query = `
+      SELECT 
+        p.id, 
+        p.title, 
+        p.content, 
+        p.created_at as createdAt, 
+        b.name as brandName, 
+        b.logo as brandLogo, 
+        (SELECT GROUP_CONCAT(file_path) FROM post_files WHERE post_id = p.id) as images,
+        (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as likes 
+      FROM 
+        posts p 
+      JOIN 
+        brand_users bu ON p.created_by = bu.user_id 
+      JOIN 
+        brands b ON bu.brand_id = b.id 
+      WHERE 
+        b.id = ? 
+      ORDER BY 
+        p.created_at DESC 
+      LIMIT ? OFFSET ?`;
+
+    const [rows] = await promisePool.query(query, [brandId, parseInt(limit), parseInt(offset)]);
+
+    const posts = rows.map((row) => ({
+      ...row,
+      images: row.images
+        ? row.images.split(",").map((image) => `/uploads/${path.basename(image)}`)
+        : [],
+      brandLogo: row.brandLogo
+        ? `/uploads/${path.basename(row.brandLogo)}`
+        : null,
+    }));
+
+    res.json({ posts });
+  } catch (error) {
+    console.error("Error fetching brand posts:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 
 // Buscar

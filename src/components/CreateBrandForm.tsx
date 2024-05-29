@@ -28,7 +28,7 @@ const CreateBrandForm: React.FC = () => {
       if (success) {
         setSuccessMessage('Marca creada correctamente. Redirigiendo al panel de control...');
         setTimeout(() => {
-          navigate('/control-panel');
+          navigate('/control-panel/dashboard');
         }, 2000); // Espera 2 segundos antes de redirigir
       }
     }

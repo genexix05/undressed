@@ -12,7 +12,7 @@ interface Post {
 }
 
 const Publications: React.FC = () => {
-  const { accessToken } = useAuth();  // Obtén el token de autenticación
+  const { brandId, accessToken } = useAuth();  // Obtén el token de autenticación
   const [posts, setPosts] = useState<Post[]>([]);  // Inicializa posts como un array vacío
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [modalIsOpen, setModalIsOpen] = useState<boolean>(false);
@@ -29,11 +29,9 @@ const Publications: React.FC = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get('http://localhost:3001/api/posts', {
-          headers: { Authorization: `Bearer ${accessToken}` }  // Incluye el token de autenticación
+        const response = await axios.get(`http://localhost:3001/api/brand-posts/${brandId}`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
         });
-
-        console.log('API response:', response.data);  // Verifica la estructura de la respuesta
 
         if (response.data && Array.isArray(response.data.posts)) {
           setPosts(response.data.posts);
@@ -46,7 +44,7 @@ const Publications: React.FC = () => {
     };
 
     fetchPosts();
-  }, [accessToken]);
+  }, [accessToken, brandId]);
 
   const openModal = (post: Post) => {
     setSelectedPost(post);
