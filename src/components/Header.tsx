@@ -81,13 +81,6 @@ const Header: React.FC = () => {
                     <FaPlusCircle className="text-lg" />
                     <span>Crear Marca</span>
                   </Link>
-                  <Link
-                    to="/join-brand"
-                    className="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-purple-500 text-black hover:bg-gradient-to-tr hover:from-purple-500 hover:to-pink-500 hover:text-white transition focus:outline-none whitespace-nowrap"
-                  >
-                    <FaSignInAlt className="text-lg" />
-                    <span>Unirse Marca</span>
-                  </Link>
                 </>
               ) : userRole === "admin" ? (
                 <Link

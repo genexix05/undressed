@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './Dashboard';
-import UserList from './UserList';
+import UserList from './UsersList';
 import Publications from './Publications';  // Cambiado de Projects a Publications
 import Marca from './Marca';  // Cambiado de Account a Marca
 import Invitations from './Invitations';  // Nuevo componente para Invitations

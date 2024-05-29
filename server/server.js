@@ -1135,6 +1135,58 @@ app.post("/api/page-view", authenticateToken, async (req, res) => {
   }
 });
 
+app.get("/api/admin/users", authenticateToken, async (req, res) => {
+  const { role, brand } = req.query;
+
+  try {
+    let query = `
+      SELECT 
+        users.id, 
+        users.username, 
+        users.email, 
+        users.profile_pic, 
+        users.role, 
+        brands.name as brand 
+      FROM 
+        users 
+      LEFT JOIN 
+        brand_users ON users.id = brand_users.user_id 
+      LEFT JOIN 
+        brands ON brand_users.brand_id = brands.id
+    `;
+    let params = [];
+
+    if (role || brand) {
+      query += " WHERE";
+      if (role) {
+        query += " users.role = ?";
+        params.push(role);
+      }
+      if (brand) {
+        if (role) query += " AND";
+        query += " brands.name = ?";
+        params.push(brand);
+      }
+    }
+
+    const [users] = await promisePool.query(query, params);
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/api/admin/brands", authenticateToken, async (req, res) => {
+  try {
+    const [brands] = await promisePool.query("SELECT id, name FROM brands");
+    res.json(brands);
+  } catch (error) {
+    console.error("Error fetching brands:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 app.get("/api/users", authenticateToken, async (req, res) => {
   const { brandId } = req.query;

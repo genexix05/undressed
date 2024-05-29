@@ -1,8 +1,8 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import AdminDashboard from './AdminDashboard';
-import AdminUserList from './AdminUserList';
-import AdminMarca from './AdminMarcas';
+import AdminUsersList from './AdminUsersList';
+// import AdminMarca from './AdminMarcas';
 import Scraper from './Scraper';
 
 const AdminPanel: React.FC = () => {
@@ -143,8 +143,8 @@ const AdminPanel: React.FC = () => {
         <div className="px-4 sm:px-6 md:px-8">
           <Routes>
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="users" element={<AdminUserList />} />
-            <Route path="marca" element={<AdminMarca />} />
+            <Route path="users" element={<AdminUsersList />} />
+            {/* <Route path="marca" element={<AdminMarca />} /> */}
             <Route path="scraper" element={<Scraper />} />
           </Routes>
         </div>
