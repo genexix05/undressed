@@ -861,6 +861,14 @@ app.get("/api/search", authenticateToken, async (req, res) => {
   }
 });
 
+const formatPrice = (price) => {
+  if (price === null) {
+    return "Sold Out";
+  }
+  // Convertir a string, eliminar simbolos de moneda y formatear
+  return price.toString().replace(/[^\d.,]/g, '');
+};
+
 app.get('/api/products', authenticateToken, async (req, res) => {
   try {
     const [rows] = await promisePool.query("SELECT * FROM products");
@@ -899,6 +907,7 @@ app.get('/api/products', authenticateToken, async (req, res) => {
 
     const products = rows.map(product => ({
       ...product,
+      price: formatPrice(product.price),
       images: product.image_urls ? extractImageUrls(product.image_urls) : []
     }));
     res.json(products);
@@ -955,6 +964,7 @@ app.get('/api/products/:id', authenticateToken, async (req, res) => {
       return urls;
     };
 
+    product.price = formatPrice(product.price);
     product.images = product.image_urls ? extractImageUrls(product.image_urls) : [];
 
     res.json(product);

@@ -20,3 +20,12 @@ code {
 .placeholder-sm::placeholder {
   @apply text-xs; /* O cualquier otro tamaño de fuente que desees */
 }
+
+.image-gallery-icon:hover {
+  color: #b733b3 !important;
+}
+
+.image-gallery-thumbnail.active, .image-gallery-thumbnail:focus , .image-gallery-thumbnail:hover {
+  outline: none;
+  border: 3px solid #b733b3 !important;
+}

@@ -10,12 +10,13 @@ interface Product {
   id: number;
   name: string;
   description: string;
-  price: number;
+  price: string; // Cambiamos el tipo a string para manejar "Sold Out"
   images: string[];
   brand: string;
   color: string;
   originalPrice: number;
   discount: number;
+  link: string;
 }
 
 const ProductDetail: React.FC = () => {
@@ -78,7 +79,9 @@ const ProductDetail: React.FC = () => {
   };
 
   if (!product) {
-    return <div>Loading...</div>;
+    return <div className="flex justify-center items-center h-screen">
+    <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900"></div>
+  </div>;
   }
 
   const images = product.images.map(image => ({
@@ -90,15 +93,46 @@ const ProductDetail: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-wrap">
         <div className="w-full md:w-1/2 flex flex-col items-center">
-          <ImageGallery items={images} />
+          <div className="w-80">
+            <ImageGallery
+              items={images}
+              showPlayButton={false}
+              showFullscreenButton={false}
+              renderLeftNav={(onClick, disabled) => (
+                <button
+                  type="button"
+                  className="image-gallery-icon image-gallery-left-nav"
+                  disabled={disabled}
+                  onClick={onClick}
+                  aria-label="Previous Slide"
+                  style={{ color: disabled ? 'gray' : 'purple' }}
+                />
+              )}
+              renderRightNav={(onClick, disabled) => (
+                <button
+                  type="button"
+                  className="image-gallery-icon image-gallery-right-nav"
+                  disabled={disabled}
+                  onClick={onClick}
+                  aria-label="Next Slide"
+                  style={{ color: disabled ? 'gray' : 'purple' }}
+                />
+              )}
+            />
+          </div>
         </div>
         <div className="w-full md:w-1/2 pl-0 md:pl-8">
           <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
-          <p className="text-xl font-semibold text-purple-600 mb-1">{product.price}€</p>
+          <p className="text-xl font-semibold text-purple-600 mb-1">{product.price === "Sold Out" ? product.price : `${product.price}€`}</p>
           <div className="flex items-center mb-4">
-            <button className="bg-black text-white py-2 px-4 rounded flex items-center">
+            <a
+              href={product.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-black text-white py-2 px-4 rounded flex items-center"
+            >
               Link del producto
-            </button>
+            </a>
           </div>
           <div className="flex items-center mb-4">
             <button
