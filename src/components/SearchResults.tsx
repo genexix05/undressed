@@ -28,15 +28,18 @@ const SearchResults: React.FC = () => {
         return url;
       }
     }
-    return urls[0]; // Fallback to the first URL if no valid image URL is found
+    return urls[0];
   };
 
   const extractBrandFromUrl = (url: string) => {
     if (!url) return "Unknown Brand";
     const match = url.match(/:\/\/(?:www\.)?(?:[^\.]+\.)?([^\.]+)\.[^\/]+/);
-    return match
-      ? match[1].charAt(0).toUpperCase() + match[1].slice(1)
-      : "Unknown Brand";
+    return match ? match[1].charAt(0).toUpperCase() + match[1].slice(1) : "Unknown Brand";
+  };
+
+  const formatPrice = (price: string | null) => {
+    if (price === null) return "Sold Out";
+    return price.replace(/[^\d.,]/g, '');
   };
 
   if (loading) {
@@ -143,7 +146,7 @@ const SearchResults: React.FC = () => {
                     <p className="text-gray-400">
                       {extractBrandFromUrl(product.url)}
                     </p>
-                    <p className="text-2xl font-bold">{product.price} €</p>
+                    <p className="text-2xl font-bold">{formatPrice(product.price)} €</p>
                   </div>
                 </Link>
               ))}

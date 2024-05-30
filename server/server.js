@@ -864,9 +864,42 @@ app.get("/api/search", authenticateToken, async (req, res) => {
 app.get('/api/products', authenticateToken, async (req, res) => {
   try {
     const [rows] = await promisePool.query("SELECT * FROM products");
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif'];
+
+    const extractImageUrls = (imageUrls) => {
+      const urls = [];
+      let remainingUrls = imageUrls;
+      while (remainingUrls) {
+        let foundIndex = -1;
+        let extLength = 0;
+        for (let ext of imageExtensions) {
+          const index = remainingUrls.indexOf(ext);
+          if (index !== -1 && (foundIndex === -1 || index < foundIndex)) {
+            foundIndex = index;
+            extLength = ext.length;
+          }
+        }
+        if (foundIndex !== -1) {
+          let url = remainingUrls.substring(0, foundIndex + extLength).trim();
+          if (!url.startsWith('//')) {
+            const startIndex = url.indexOf('https://') !== -1 ? url.indexOf('https://') : url.indexOf('http://');
+            if (startIndex !== -1) {
+              url = url.substring(startIndex + (url.indexOf('https://') !== -1 ? 8 : 7));
+              url = '//' + url;
+            }
+          }
+          urls.push(url);
+          remainingUrls = remainingUrls.substring(foundIndex + extLength).trim();
+        } else {
+          remainingUrls = null;
+        }
+      }
+      return urls;
+    };
+
     const products = rows.map(product => ({
       ...product,
-      images: product.image_urls ? product.image_urls.split(',') : []
+      images: product.image_urls ? extractImageUrls(product.image_urls) : []
     }));
     res.json(products);
   } catch (error) {
@@ -889,7 +922,40 @@ app.get('/api/products/:id', authenticateToken, async (req, res) => {
     }
 
     const product = rows[0];
-    product.images = product.image_urls ? product.image_urls.split(",") : []; // Ajusta esto según cómo almacenes las URLs de las imágenes
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif'];
+
+    const extractImageUrls = (imageUrls) => {
+      const urls = [];
+      let remainingUrls = imageUrls;
+      while (remainingUrls) {
+        let foundIndex = -1;
+        let extLength = 0;
+        for (let ext of imageExtensions) {
+          const index = remainingUrls.indexOf(ext);
+          if (index !== -1 && (foundIndex === -1 || index < foundIndex)) {
+            foundIndex = index;
+            extLength = ext.length;
+          }
+        }
+        if (foundIndex !== -1) {
+          let url = remainingUrls.substring(0, foundIndex + extLength).trim();
+          if (!url.startsWith('//')) {
+            const startIndex = url.indexOf('https://') !== -1 ? url.indexOf('https://') : url.indexOf('http://');
+            if (startIndex !== -1) {
+              url = url.substring(startIndex + (url.indexOf('https://') !== -1 ? 8 : 7));
+              url = '//' + url;
+            }
+          }
+          urls.push(url);
+          remainingUrls = remainingUrls.substring(foundIndex + extLength).trim();
+        } else {
+          remainingUrls = null;
+        }
+      }
+      return urls;
+    };
+
+    product.images = product.image_urls ? extractImageUrls(product.image_urls) : [];
 
     res.json(product);
   } catch (error) {
@@ -897,6 +963,7 @@ app.get('/api/products/:id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 // Actualizar un producto específico por ID
 app.put('/api/products/:id', authenticateToken, async (req, res) => {

@@ -18,7 +18,7 @@ interface ProductType {
   id: number;
   name: string;
   image_urls: string[];
-  price: number;
+  price: string;
   url: string;
 }
 
