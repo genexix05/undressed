@@ -22,12 +22,13 @@ const SearchResults: React.FC = () => {
     return `http://localhost:3001/uploads/${fileName}`;
   };
 
-  const getProductImageUrl = (url: string | null) => {
-    if (!url) return "";
-    const correctedUrl = url.replace(/\\/g, "/");
-    return correctedUrl.startsWith("..")
-      ? `http://localhost:3001/uploads/${correctedUrl.split('/').pop()}`
-      : correctedUrl;
+  const getProductImageUrl = (urls: string[]) => {
+    for (const url of urls) {
+      if (url.endsWith(".png") || url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".gif")) {
+        return url;
+      }
+    }
+    return urls[0]; // Fallback to the first URL if no valid image URL is found
   };
 
   const extractBrandFromUrl = (url: string) => {
@@ -39,7 +40,9 @@ const SearchResults: React.FC = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="flex justify-center items-center h-screen">
+    <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900"></div>
+  </div>;
   }
 
   if (error) {
@@ -125,14 +128,13 @@ const SearchResults: React.FC = () => {
                   key={product.id}
                   className="bg-white text-black p-4 rounded-lg relative shadow-md"
                 >
-                  {Array.isArray(product.image_urls) &&
-                    product.image_urls.length > 0 && (
-                      <img
-                        src={getProductImageUrl(product.image_urls[0])}
-                        alt={product.name}
-                        className="w-full h-40 object-contain mb-4"
-                      />
-                    )}
+                  {Array.isArray(product.image_urls) && product.image_urls.length > 0 && (
+                    <img
+                      src={getProductImageUrl(product.image_urls)}
+                      alt={product.name}
+                      className="w-full h-40 object-contain mb-4"
+                    />
+                  )}
                   <button className="absolute top-2 right-2 text-white">
                     <FaHeart size={20} />
                   </button>

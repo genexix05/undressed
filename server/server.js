@@ -819,14 +819,38 @@ app.get("/api/search", authenticateToken, async (req, res) => {
       [lowerCaseQuery]
     );
 
-    // Parsear las URLs de las imágenes
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif'];
+
+    const extractImageUrls = (imageUrls) => {
+      const urls = [];
+      let remainingUrls = imageUrls;
+      while (remainingUrls) {
+        let foundIndex = -1;
+        let extLength = 0;
+        for (let ext of imageExtensions) {
+          const index = remainingUrls.indexOf(ext);
+          if (index !== -1 && (foundIndex === -1 || index < foundIndex)) {
+            foundIndex = index;
+            extLength = ext.length;
+          }
+        }
+        if (foundIndex !== -1) {
+          urls.push(remainingUrls.substring(0, foundIndex + extLength).trim());
+          remainingUrls = remainingUrls.substring(foundIndex + extLength).trim();
+        } else {
+          remainingUrls = null;
+        }
+      }
+      return urls;
+    };
+
     const fixedProducts = products.map((product) => {
       const images = product.image_urls
-        ? product.image_urls.split(",").map((url) => url.trim())
+        ? extractImageUrls(product.image_urls)
         : [];
       return {
         ...product,
-        image_urls: images.length > 0 ? images : [],
+        image_urls: images,
       };
     });
 

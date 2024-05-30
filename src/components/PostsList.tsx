@@ -27,7 +27,9 @@ const PostsList: React.FC = () => {
           return <Post key={post.id} {...post} />;
         }
       })}
-      {loading && <p>Cargando más publicaciones...</p>}
+      {loading && <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900"></div>
+      </div>}
       {error && <p>{error}</p>}
     </div>
   );
