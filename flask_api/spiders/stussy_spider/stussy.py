@@ -3,21 +3,21 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
-import mysql.connector
-from mysql.connector import Error
 import re
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
-class StussyProductsSpider(scrapy.Spider):
+class BaseSpider(scrapy.Spider):
+    def __init__(self, start_urls=None, category=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.start_urls = start_urls or self.start_urls
+        self.category = category
+
+class StussyProductsSpider(BaseSpider):
     name = 'stussy'
     allowed_domains = ['eu.stussy.com']
     start_urls = ['https://eu.stussy.com/es-es/collections/all']
-
-    def __init__(self, category=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.category = category
 
     def parse(self, response):
         self.logger.info(f'Parsing page: {response.url}')
@@ -44,6 +44,36 @@ class StussyProductsSpider(scrapy.Spider):
             self.logger.info(f'Following to next page: {next_page_url}')
             yield response.follow(next_page_url, self.parse)
 
+class YeezySpider(BaseSpider):
+    name = 'yeezy'
+    allowed_domains = ['yeezy.com']
+    start_urls = ['https://yeezy.com/']
+
+    def parse(self, response):
+        styles = " ".join(response.css('style ::text').getall())
+        for product in response.css('.product-card'):
+            product_id = product.css('.product-card-image::attr(id)').get()
+            if product_id:
+                pattern = rf'#{re.escape(product_id)}\s*{{.*?background-image:\s*url\((//.*?\.png).*?\)'
+                match = re.search(pattern, styles, re.DOTALL | re.IGNORECASE)
+                if match:
+                    image_url = f"https:{match.group(1)}"
+                else:
+                    image_url = 'Imagen no disponible'
+            else:
+                image_url = 'Imagen no disponible'
+
+            yield {
+                'name': product.css('.product-card-title::text').get().strip(),
+                'url': response.urljoin(product.css('::attr(href)').get()).strip(),
+                'price': product.css('.product-card-price::text').get(default='Precio no disponible').strip(),
+                'image_url': image_url,
+            }
+
+        next_page = response.css('a.next::attr(href)').get()
+        if next_page is not None:
+            yield response.follow(next_page, self.parse)
+
 @app.route('/run_spider/<spider_name>', methods=['GET', 'OPTIONS'])
 def run_spider(spider_name):
     if request.method == 'OPTIONS':
@@ -54,10 +84,12 @@ def run_spider(spider_name):
         return response
 
     category = request.args.get('category')
+    urls = request.args.getlist('url')  # Get the list of URLs from the request
     process = CrawlerProcess(get_project_settings())
 
     spider_classes = {
         'stussy': StussyProductsSpider,
+        'yeezy': YeezySpider
     }
 
     spider_class = spider_classes.get(spider_name.lower())
@@ -68,7 +100,7 @@ def run_spider(spider_name):
         return response, 404
 
     try:
-        process.crawl(spider_class, category=category)
+        process.crawl(spider_class, start_urls=urls, category=category)
         process.start()
         response = jsonify({"status": "success", "spider": spider_name})
         response.headers.add("Access-Control-Allow-Origin", "http://localhost:3000")
