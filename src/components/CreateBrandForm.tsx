@@ -46,22 +46,17 @@ const CreateBrandForm: React.FC = () => {
     const success = await createBrand(formData);
     if (success) {
       setSuccessMessage('Marca creada correctamente.');
-      toast.success('Marca creada con éxito. Redirigiendo al panel de control...');
+      toast.success('Marca creada con éxito.');
       setTimeout(() => {
-        navigate('/control-panel/dashboard');
-      }, 2000); // Espera 2 segundos antes de redirigir
+        navigate('/home', { replace: true });
+      }, 2000);
     }
   };
 
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+    <section className="flex items-center justify-center mt-10">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
         <h1 className="text-2xl font-bold text-center mb-6">Crear una Marca</h1>
-        {successMessage && (
-          <div className="p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg dark:bg-green-200 dark:text-green-800">
-            {successMessage}
-          </div>
-        )}
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="brandName" className="block mb-2 text-sm font-medium text-gray-700">Nombre de la marca</label>
@@ -126,7 +121,7 @@ const CreateBrandForm: React.FC = () => {
           </div>
           <button
             type="submit"
-            className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            className="w-full text-white bg-purple-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
             disabled={loading}
           >
             {loading ? 'Creando...' : 'Crear Marca'}
