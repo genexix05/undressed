@@ -101,79 +101,18 @@ const createTransporter = async () => {
 
 // Registro de Marcas
 
-app.post("/register-brand", async (req, res) => {
-  console.log("Registro de marca solicitado");
-  const { name, surname, date, username, email, password } = req.body;
-  const verificationToken = uuidv4();
-  const saltRounds = 10;
-
-  try {
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const [result] = await promisePool.query(
-      "INSERT INTO users (name, surname, date, username, email, password, role, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        name,
-        surname,
-        date,
-        username,
-        email,
-        hashedPassword,
-        "brand",
-        verificationToken,
-      ]
-    );
-
-    const accessToken = jwt.sign(
-      { userId: result.insertId, email: email, role: "brand" },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "5h" }
-    );
-
-    const refreshToken = jwt.sign(
-      { userId: result.insertId, email: email, role: "brand" },
-      process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
-    await promisePool.query(
-      "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
-      [result.insertId, refreshToken, expiresAt]
-    );
-
-    const verificationLink = `http://localhost:3001/verify?token=${verificationToken}`;
-    const transporter = await createTransporter();
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Verifica tu cuenta",
-      html: `<p>Gracias por registrarte! Por favor verifica tu cuenta haciendo clic en el siguiente enlace: <a href="${verificationLink}">Verificar Cuenta</a></p>`,
-    });
-
-    console.log("Correo de verificación enviado.");
-    res.send({
-      message:
-        "Marca registrada correctamente, se ha enviado un correo de verificación.",
-      userId: result.insertId,
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-    });
-  } catch (error) {
-    console.error("Error en el proceso de registro:", error);
-    res.status(500).send({ error: "Error en el registro: " + error.message });
-  }
-});
-
-// Registro Usuarios
-
 app.post("/register", async (req, res) => {
   const { name, surname, date, username, email, password } = req.body;
   const verificationToken = uuidv4();
   const saltRounds = 10;
 
+  console.log("Iniciando registro de usuario");
+  console.log(`Datos recibidos: ${JSON.stringify(req.body)}`);
+
   try {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
+    console.log("Contraseña encriptada");
+
     const [result] = await promisePool.query(
       "INSERT INTO users (name, surname, date, username, email, password, role, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       [
@@ -187,18 +126,21 @@ app.post("/register", async (req, res) => {
         verificationToken,
       ]
     );
+    console.log("Usuario insertado en la base de datos");
 
     const accessToken = jwt.sign(
       { userId: result.insertId, email: email, role: "user" },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "5h" }
     );
+    console.log("Access token generado");
 
     const refreshToken = jwt.sign(
       { userId: result.insertId, email: email, role: "user" },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: "7d" }
     );
+    console.log("Refresh token generado");
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
@@ -206,6 +148,7 @@ app.post("/register", async (req, res) => {
       "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
       [result.insertId, refreshToken, expiresAt]
     );
+    console.log("Refresh token insertado en la base de datos");
 
     const verificationLink = `http://localhost:3001/verify?token=${verificationToken}`;
     const transporter = await createTransporter();
@@ -215,8 +158,8 @@ app.post("/register", async (req, res) => {
       subject: "Verifica tu cuenta",
       html: `<p>Gracias por registrarte! Por favor verifica tu cuenta haciendo clic en el siguiente enlace: <a href="${verificationLink}">Verificar Cuenta</a></p>`,
     });
-
     console.log("Correo de verificación enviado.");
+
     res.send({
       message:
         "Usuario registrado correctamente, se ha enviado un correo de verificación.",
@@ -229,6 +172,80 @@ app.post("/register", async (req, res) => {
     res.status(500).send({ error: "Error en el registro: " + error.message });
   }
 });
+
+app.post("/register-brand", async (req, res) => {
+  console.log("Registro de marca solicitado");
+  const { name, surname, date, username, email, password } = req.body;
+  const verificationToken = uuidv4();
+  const saltRounds = 10;
+
+  console.log("Iniciando registro de marca");
+  console.log(`Datos recibidos: ${JSON.stringify(req.body)}`);
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    console.log("Contraseña encriptada");
+
+    const [result] = await promisePool.query(
+      "INSERT INTO users (name, surname, date, username, email, password, role, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        name,
+        surname,
+        date,
+        username,
+        email,
+        hashedPassword,
+        "brand",
+        verificationToken,
+      ]
+    );
+    console.log("Marca insertada en la base de datos");
+
+    const accessToken = jwt.sign(
+      { userId: result.insertId, email: email, role: "brand" },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "5h" }
+    );
+    console.log("Access token generado");
+
+    const refreshToken = jwt.sign(
+      { userId: result.insertId, email: email, role: "brand" },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
+    console.log("Refresh token generado");
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+    await promisePool.query(
+      "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+      [result.insertId, refreshToken, expiresAt]
+    );
+    console.log("Refresh token insertado en la base de datos");
+
+    const verificationLink = `http://localhost:3001/verify?token=${verificationToken}`;
+    const transporter = await createTransporter();
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Verifica tu cuenta",
+      html: `<p>Gracias por registrarte! Por favor verifica tu cuenta haciendo clic en el siguiente enlace: <a href="${verificationLink}">Verificar Cuenta</a></p>`,
+    });
+    console.log("Correo de verificación enviado.");
+
+    res.send({
+      message:
+        "Marca registrada correctamente, se ha enviado un correo de verificación.",
+      userId: result.insertId,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    });
+  } catch (error) {
+    console.error("Error en el proceso de registro:", error);
+    res.status(500).send({ error: "Error en el registro: " + error.message });
+  }
+});
+
 
 // Verificación de Usuarios por correo
 
