@@ -32,7 +32,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className=" mt-32 flex items-center justify-center bg-gray-100">
+    <div className=" mt-16 flex items-center justify-center bg-gray-100">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center">¿Ya eres socio de Undressed?</h2>
         <div className="flex justify-center items-center mb-6">

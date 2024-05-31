@@ -1800,6 +1800,26 @@ app.get('/api/userproducts/:userId', authenticateToken, async (req, res) => {
   }
 });
 
+app.post("/api/check-user", async (req, res) => {
+  const { username, email } = req.body;
+
+  try {
+    const [userResult] = await promisePool.query(
+      "SELECT COUNT(*) as count FROM users WHERE username = ? OR email = ?",
+      [username, email]
+    );
+
+    const usernameExists = userResult[0].count > 0;
+    const emailExists = userResult[0].count > 0;
+
+    res.json({ usernameExists, emailExists });
+  } catch (error) {
+    console.error("Error checking user:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 
 app.listen(port, () => {
   console.log(`Node server listening at http://localhost:${port}`);

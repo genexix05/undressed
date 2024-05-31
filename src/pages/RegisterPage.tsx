@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const RegisterPage: React.FC = () => {
   const [name, setName] = useState("");
@@ -14,10 +16,32 @@ const RegisterPage: React.FC = () => {
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden.");
+      toast.error("Las contraseñas no coinciden.");
       return;
     }
+
     try {
+      const checkResponse = await fetch("http://localhost:3001/api/check-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          email,
+        }),
+      });
+
+      const checkData = await checkResponse.json();
+      if (checkData.usernameExists) {
+        toast.error("El nombre de usuario ya existe.");
+        return;
+      }
+      if (checkData.emailExists) {
+        toast.error("El correo electrónico ya está registrado.");
+        return;
+      }
+
       const response = await fetch("http://localhost:3001/register", {
         method: "POST",
         headers: {
@@ -32,19 +56,23 @@ const RegisterPage: React.FC = () => {
           password,
         }),
       });
+
       if (!response.ok) {
         throw new Error("Error en el registro");
       }
+
       const data = await response.json();
       console.log("Registro exitoso:", data);
       navigate("/verify-email");
     } catch (error) {
+      toast.error("Error al registrar.");
       console.error("Error al registrar:", error);
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <ToastContainer />
       <div className="px-8 py-6 mt-4 text-left bg-white shadow-lg max-w-md w-full">
         <h3 className="text-2xl font-bold text-center">Registrarse</h3>
         <form onSubmit={handleRegister}>
@@ -71,19 +99,6 @@ const RegisterPage: React.FC = () => {
                 id="surname"
                 value={surname}
                 onChange={(e) => setSurname(e.target.value)}
-                className="w-full px-4 py-2 mt-2 border rounded-md"
-                required
-              />
-            </div>
-            <div>
-              <label className="block" htmlFor="date">
-                Fecha de Nacimiento
-              </label>
-              <input
-                type="date"
-                id="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
                 className="w-full px-4 py-2 mt-2 border rounded-md"
                 required
               />
