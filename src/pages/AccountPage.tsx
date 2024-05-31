@@ -110,71 +110,59 @@ const AccountPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-lg mx-auto my-10 p-5 border rounded-lg">
-      <h2 className="text-2xl font-bold mb-5">Mi Cuenta</h2>
-      <div className="mb-4">
-        <label className="block mb-1">Nombre</label>
+    <div className="bg-white h-3/5 max-w-lg mx-auto mt-4 p-6 shadow-md rounded-lg">
+      <h2 className="text-3xl font-semibold text-gray-800 mb-6">Mi Cuenta</h2>
+      <div className="mb-6">
+        <label className="block text-gray-600 mb-2">Nombre</label>
         <input
           type="text"
           name="name"
           value={userInfo.name}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
       </div>
-      <div className="mb-4">
-        <label className="block mb-1">Apellido</label>
+      <div className="mb-6">
+        <label className="block text-gray-600 mb-2">Apellido</label>
         <input
           type="text"
           name="surname"
           value={userInfo.surname}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
       </div>
-      <div className="mb-4">
-        <label className="block mb-1">Fecha de Nacimiento</label>
-        <input
-          type="date"
-          name="date"
-          value={userInfo.date}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block mb-1">Nombre de Usuario</label>
+      <div className="mb-6">
+        <label className="block text-gray-600 mb-2">Nombre de Usuario</label>
         <input
           type="text"
           name="username"
           value={userInfo.username}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
       </div>
-      <div className="mb-4">
-        <label className="block mb-1">Correo Electrónico</label>
+      <div className="mb-6">
+        <label className="block text-gray-600 mb-2">Correo Electrónico</label>
         <input
           type="email"
           name="email"
           value={userInfo.email}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
       </div>
-      <div>
-          <p>Role: {userRole}</p>
-          <p>You are logged in.</p>
-        </div>
-      <button onClick={handleUpdate} className="bg-blue-500 text-white p-2 rounded mr-2">
-        Actualizar Información
-      </button>
-      <button onClick={handleLogout} className="bg-yellow-500 text-white p-2 rounded mr-2">
-        Cerrar Sesión
-      </button>
-      <button onClick={handleDeleteAccount} className="bg-red-500 text-white p-2 rounded">
-        Eliminar Cuenta
-      </button>
+      <div className="flex space-x-3">
+        <button onClick={handleUpdate} className="bg-purple-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+          Actualizar
+        </button>
+        <button onClick={handleLogout} className="bg-gray-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+          Cerrar Sesión
+        </button>
+        <button onClick={handleDeleteAccount} className="bg-red-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+          Eliminar Cuenta
+        </button>
+      </div>
     </div>
   );
 };

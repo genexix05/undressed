@@ -47,9 +47,6 @@ const CreateBrandForm: React.FC = () => {
     if (success) {
       setSuccessMessage('Marca creada correctamente.');
       toast.success('Marca creada con éxito.');
-      setTimeout(() => {
-        navigate('/home', { replace: true });
-      }, 2000);
     }
   };
 

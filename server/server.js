@@ -1836,6 +1836,41 @@ app.post("/api/check-user", async (req, res) => {
   }
 });
 
+// Obtener información de la marca
+app.get('/api/marca', authenticateToken, async (req, res) => {
+  try {
+    const [rows] = await promisePool.query("SELECT * FROM brands WHERE id = ?", [req.body.brandId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Marca no encontrada" });
+    }
+    res.json(rows[0]);
+  } catch (error) {
+    console.error('Error fetching marca:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Actualizar información de la marca
+app.put('/api/marca/:id', authenticateToken, async (req, res) => {
+  const { brandId } = req.body;
+  const { descripcion, logoUrl } = req.body;
+
+  try {
+    const [result] = await promisePool.query(
+      "UPDATE marca SET description = ?, logo = ? WHERE id = ?",
+      [descripcion, logoUrl, brandId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Marca no encontrada" });
+    }
+
+    res.json({ message: "Marca actualizada con éxito" });
+  } catch (error) {
+    console.error('Error updating marca:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 
 app.listen(port, () => {
