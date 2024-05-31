@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import useCreatePost from '../hooks/useCreatePost';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface CreatePostFormProps {
   closeModal: () => void;
@@ -22,7 +24,6 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
   const { brandId, accessToken } = useAuth();
   const { createPost, loading, error } = useCreatePost();
   const navigate = useNavigate();
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [brandInfo, setBrandInfo] = useState<BrandInfo | null>(null);
 
   useEffect(() => {
@@ -79,10 +80,10 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
 
       const response = await createPost(formData);
       if (response) {
-        setSuccessMessage('Publicación creada correctamente. Redirigiendo...');
+        toast.success('Publicación creada correctamente. Redirigiendo...');
         setTimeout(() => {
           closeModal();
-          navigate(`/brand/${brandId}/posts`);
+          navigate(`/home`);
         }, 2000);
       }
     } else {
@@ -138,14 +139,8 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
         <div className="flex-1 p-6 bg-gray-100 relative">
           <button onClick={closeModal} className="absolute top-2 right-2 text-gray-900 text-2xl font-bold">&times;</button>
           <div className="flex items-center mb-4">
-            {brandInfo.logo && <img src={`http://localhost:3001/uploads/${brandInfo.logo}`} alt={brandInfo.name} className="h-10 w-10 rounded-full mr-2" />}
             <h2 className="text-xl font-bold text-gray-900">{brandInfo.name}</h2>
           </div>
-          {successMessage && (
-            <div className="p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg">
-              {successMessage}
-            </div>
-          )}
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <input
@@ -182,6 +177,7 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ closeModal }) => {
           </form>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };
