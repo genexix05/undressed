@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('#botonA').click(function(){
+                $('div').load('fichero1.html')
+            })
+            $('#botonB').click(function(){
+                $('div').load('fichero2.html')
+            })
+            $('#botonC').click(function(){
+                $('div').load('datos.txt')
+            })
+        })
+    </script>
+</head>
+<body>
+    <h1>Ejercicio de ajax y jquery</h1>
+    <div></div>
+    <button id="botonA">Pagina1</button>
+    <button id="botonB">Pagina2</button>
+    <button id="botonC">Muestra datos</button>
+
+</body>
+</html>

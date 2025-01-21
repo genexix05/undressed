@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      table,
+      th,
+      td {
+        border: 1px solid black;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 5px;
+      }
+    </style>
+    <script>
+      var XHR = new XMLHttpRequest();
+
+      function cargartabla() {
+        XHR.open("GET", "cds.xml");
+        XHR.onreadystatechange = function () {
+          if (XHR.readyState == 4 && XHR.status == 200) {
+            funciontabla();
+          }
+        };
+        XHR.send();
+      }
+
+      function funciontabla() {
+        let xmlDoc = XHR.responseXML;
+        let tabla = "<tr><th>artista</th><th>año</th><th>titulo</th></tr>";
+        let x = xmlDoc.getElementsByTagName("CD");
+        for (let i = 0; i < x.length; i++) {
+          tabla +=
+            "<tr><td>" +
+            x[i].getElementsByTagName("ARTIST")[0].childNodes[0].nodeValue +
+            "</td><td>" +
+            x[i].getElementsByTagName("YEAR")[0].childNodes[0].nodeValue +
+            "</td><td>" +
+            x[i].getElementsByTagName("TITLE")[0].childNodes[0].nodeValue +
+            "</td></tr>";
+        }
+        document.getElementById("demo").innerHTML = tabla;
+      }
+    </script>
+  </head>
+  <body>
+    <button onclick="cargartabla()">mis cds</button><br />
+    <table id="demo">
+      <tr>
+        <td>artista</td>
+        <td>año</td>
+        <td>titulo</td>
+      </tr>
+    </table>
+  </body>
+</html>

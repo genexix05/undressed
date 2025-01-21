@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Encuesta</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #ffffde;
+        text-align: center;
+      }
+
+      h1 {
+        color: #333;
+      }
+
+      form {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        padding: 20px;
+        width: 500px;
+        margin: 0 auto;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.293);
+        transition: box-shadow 0.3s ease-in-out;
+      }
+
+      form:hover {
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.56);
+      }
+
+      label {
+        display: block;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+
+      input[type="text"],
+      input[type="number"] {
+        width: auto;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+      }
+
+      input[type="radio"],
+      input[type="checkbox"] {
+        margin-right: 5px;
+      }
+
+      input[type="submit"] {
+        background-color: #007bff;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+      }
+
+      input[type="submit"]:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Encuesta de Entretenimiento</h1>
+    <form action="procesar_encuesta.php" method="get">
+      <label for="nombre">Nombre:</label>
+      <input type="text" name="nombre" id="nombre"  /><br /><br />
+
+      <label for="edad">Edad:</label>
+      <input
+        type="number"
+        name="edad"
+        id="edad"
+        min="1"
+        max="100"
+        
+      /><br /><br />
+
+      <label>Genero:</label><br />
+      <input type="radio" name="genero" value="Masculino"  />
+      Masculino<br />
+      <input type="radio" name="genero" value="Femenino"  />
+      Femenino<br />
+      <input type="radio" name="genero" value="Otro"  />
+      Otro<br /><br />
+
+      <label>Tipo de Entretenimiento Favorito:</label><br />
+      <input type="checkbox" name="entretenimiento[]" value="Películas" />
+      Peliculas<br />
+      <input type="checkbox" name="entretenimiento[]" value="Series" />
+      Series<br />
+      <input type="checkbox" name="entretenimiento[]" value="Anime" />
+      Anime<br />
+      <input type="checkbox" name="entretenimiento[]" value="Libros" />
+      Libros<br /><br />
+
+      <label for="favorito">Pelicula, Serie, Anime o Libro Favorito:</label>
+      <input type="text" name="favorito" id="favorito" /><br /><br />
+
+      <input type="submit" value="Enviar" />
+    </form>
+  </body>
+</html>

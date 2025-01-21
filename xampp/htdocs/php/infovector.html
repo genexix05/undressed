@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Formulario de una sola página</title>
+</head>
+<body>
+    <form action="infovector.php" method="post" id="myForm">
+        <input type="text" id="element" placeholder="Ingrese un elemento">
+        <input type="hidden" name="elementos_json" id="elementos_json">
+        <input type="button" value="Añadir Elemento" onclick="agregarElemento()">
+        <input type="text" id="elemento_buscado" placeholder="Buscar elemento">
+        <input type="button" value="Enviar" onclick="enviarFormulario()">
+    </form>
+
+    <div id="resultado">
+        <!-- Aquí se mostrará el resultado después de enviar el formulario -->
+    </div>
+
+    <script>
+        let elementos = [];
+
+        function agregarElemento() {
+            const elemento = document.getElementById('element').value;
+            if (elemento !== '') {
+                elementos.push(elemento);
+                document.getElementById('element').value = '';
+            }
+        }
+
+        function enviarFormulario() {
+            if (elementos.length >= 5) {
+                const elementos_json = JSON.stringify(elementos);
+                document.getElementById('elementos_json').value = elementos_json;
+                document.getElementById('myForm').submit();
+            } else {
+                alert('El vector debe tener al menos 5 elementos para enviar el formulario.');
+            }
+        }
+    </script>
+</body>
+</html>

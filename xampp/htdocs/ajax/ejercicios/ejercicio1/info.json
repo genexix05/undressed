@@ -1,0 +1,35 @@
+{
+    "almeria": {
+      "nombre": "Almería",
+      "descripcion": "Almería es una ciudad y municipio español, capital de la provincia homónima, en la comunidad autónoma de Andalucía. Es el centro neurálgico de la Comarca Metropolitana de Almería, en el extremo sureste de la península ibérica y de la comarca turística de Almería-Cabo de Gata-Níjar.​ "
+    },
+    "cadiz": {
+      "nombre": "Cádiz",
+      "descripcion": "Cádiz es una antigua ciudad portuaria en el suroeste de España, construida en una franja de tierra rodeada de mar en la región de Andalucía. El puerto alberga a la Armada Española y creció en el siglo XVI como una base para la exploración y el comercio. Tiene más de 100 torres de vigilancia, incluida la icónica Torre Tavira, tradicionalmente usada para avistar naves, y la Catedral de Cádiz del siglo XVIII, en la costa. "
+    },
+    "cordoba": {
+      "nombre": "Córdoba",
+      "descripcion": "Córdoba es una ciudad del sur de la región de Andalucía, en España, y es la capital de la provincia de Córdoba. Fue una importante ciudad romana y uno de los principales centros islámicos de la Edad Media. Es conocida por la enorme Mezquita que data del año 784 d. C., con un salón de oración con columnas y antiguos mosaicos bizantinos. Después de convertirse en una iglesia católica en 1236, se agregó una nave de estilo renacentista en el siglo XVII."
+    },
+    "granada": {
+      "nombre": "Granada",
+      "descripcion": "Granada es una ciudad en la región de Andalucía en el sur de España, en la ladera de las montañas de la Sierra Nevada. Es famosa por sus grandes ejemplos de arquitectura medieval que datan de la ocupación de los moros, en particular, la Alhambra. Esta extensa fortaleza sobre una colina incluye palacios reales, patios y piscinas reflectantes de la dinastía Nazarí y fuentes y huertos en los jardines del Generalife."
+    },
+    "huelva": {
+      "nombre": "Huelva",
+      "descripcion": "Huelva es una ciudad portuaria del suroeste de España, donde desembocan los ríos Odiel y Tinto. Hacia el norte de la zona central se erige la capilla del Santuario de Nuestra Señora de la Cinta, que data del siglo XV y se caracteriza por sus fachadas blancas. En el Museo de Huelva se puede encontrar una amplia colección de piezas arqueológicas. La catedral de la ciudad cuenta con una impresionante fachada de estilo barroco. En la Plaza de las Monjas, flanqueada por palmeras, se alza una estatua del explorador Cristóbal Colón. "
+    },
+    "jaen": {
+      "nombre": "Jaén",
+      "descripcion": "Jaén es una ciudad y municipio español, capital de la provincia homónima, en la comunidad autónoma de Andalucía. Ostenta el título de «Muy Noble y Muy Leal Ciudad de Jaén, Guarda y Defendimiento de los Reinos de Castilla» y es conocida como la «capital del Santo Reino».​"
+    },
+    "malaga": {
+      "nombre": "Málaga",
+      "descripcion": "Málaga es una ciudad y municipio español, capital de la provincia homónima, situada en la comunidad autónoma de Andalucía."
+    },
+    "sevilla": {
+      "nombre": "Sevilla",
+      "descripcion": "Sevilla es un municipio y una ciudad de España, capital de la provincia homónima y de Andalucía.​"
+    }
+  }
+  

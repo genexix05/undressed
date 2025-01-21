@@ -1,0 +1,29 @@
+1. http://localhost/php/Ejercicios/1-%20Encuesta%20de%20Entretenimiento/procesar_encuesta.php
+   -Todos los campos vacios.
+   
+2.http://localhost/php/Ejercicios/1-%20Encuesta%20de%20Entretenimiento/procesar_encuesta.php?nombre=Juan&edad=30&genero=Masculino&entretenimiento[]=Películas&favorito=Matrix
+   - Caso de prueba completo.
+
+3. http://localhost/php/Ejercicios/1-%20Encuesta%20de%20Entretenimiento/procesar_encuesta.php?nombre=Ana&edad=150&genero=Femenino&entretenimiento[]=Libros&favorito=Harry Potter
+   - Edad fuera de rango o no hay.
+
+4.http://localhost/php/Ejercicios/1-%20Encuesta%20de%20Entretenimiento/procesar_encuesta.php?nombre=&edad=25&genero=Femenino&entretenimiento[]=Series&favorito=Breaking Bad
+   - Nombre vacío.
+
+5. http://localhost/php/Ejercicios/1-%20Encuesta%20de%20Entretenimiento/procesar_encuesta.php?nombre=Alex&edad=35&genero=&entretenimiento[]=Películas&favorito=Inception
+   - Género no seleccionado.
+
+6. http://localhost/php/Ejercicios/1-%20Encuesta%20de%20Entretenimiento/procesar_encuesta.php?nombre=David&edad=40&genero=Otro&favorito=Game of Thrones
+   - Tipo de entretenimiento favorito no seleccionado.
+
+7. http://localhost/php/Ejercicios/1-%20Encuesta%20de%20Entretenimiento/procesar_encuesta.php?nombre=Maria&edad=28&genero=Femenino&entretenimiento[]=Series&favorito=
+   - Caso de prueba completo con película/serie favorita vacia.
+
+8. http://localhost/php/Ejercicios/1-%20Encuesta%20de%20Entretenimiento/procesar_encuesta.php?nombre=Lucas&edad=25&genero=Masculino&entretenimiento[]=Anime&favorito=Death Note&entretenimiento[]=Libros
+   - Caso de prueba con muchos tipos de entretenimiento seleccionados.
+
+9. http://localhost/php/Ejercicios/1-%20Encuesta%20de%20Entretenimiento/procesar_encuesta.php?nombre=Rob&edad=45&genero=Otro&entretenimiento[]=Anime&entretenimiento[]=Películas&favorito=The Lord of the Rings
+   - Caso de prueba con género "Otro" y múltiples tipos de entretenimiento seleccionados.
+
+10.http://localhost/php/Ejercicios/1-%20Encuesta%20de%20Entretenimiento/procesar_encuesta.php?nombre=Marcos&edad=55&genero=Masculino&entretenimiento[]=Libros&entretenimiento[]=Series&favorito=The Great Gatsby
+   - Caso de prueba con género "Masculino" y múltiples tipos de entretenimiento seleccionados.
