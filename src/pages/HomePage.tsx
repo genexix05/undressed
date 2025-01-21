@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import useeAuth from '../hooks/useAuth'; // Corrección de typo
+import useAuthContext from '../hooks/useAuth'; // Corrección de typo
 import Modal from '../components/Modal';
 import CreatePostForm from '../components/CreatePostForm';
 import { useAuth } from "../context/AuthContext";
@@ -12,7 +12,7 @@ import PostsListFollowed from '../components/PostsListFollowed';
 import axios from 'axios';
 
 const HomePage: React.FC = () => {
-  const { auth, refreshToken } = useeAuth();
+  const { auth, refreshToken } = useAuthContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { userRole, isInBrand } = useAuth();
 
