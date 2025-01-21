@@ -82,6 +82,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/react-image-gallery": "^1.2.4",
     "@types/react-modal": "^3.16.3",
     "autoprefixer": "^10.4.19",
